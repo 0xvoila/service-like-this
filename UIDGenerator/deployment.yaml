@@ -42,3 +42,17 @@ spec:
                 fieldRef:
                   fieldPath: metadata.name
 
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: uid-generator-external
+  name: uid-generator-service-external
+spec:
+  type: NodePort
+  ports:
+    - port: 8080
+      nodePort: 32000
+  selector:
+    app: uid-generator
