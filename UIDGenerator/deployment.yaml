@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: uid-generator
+  name: uid-generator-service
+spec:
+  clusterIP: None
+  ports:
+    - port: 8080
+  selector:
+    app: uid-generator
+
+
+
+---
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: uid-generator
+  labels:
+    app: uid-generator
+spec:
+  replicas: 3
+  serviceName: uid-generator-service
+  selector:
+    matchLabels:
+      app: uid-generator
+  template:
+    metadata:
+      labels:
+        app: uid-generator
+    spec:
+      containers:
+        - name: uid-generator
+          image: docker.io/0xvoila/uid-generator:latest
+          imagePullPolicy: Always
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+

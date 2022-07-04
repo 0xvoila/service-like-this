@@ -12,8 +12,8 @@ public class UIDGenerator extends HttpServlet {
     int sequence = 0;
     final static int sequenceBits = 12; // max is 4096
     final static int maxSequence = (int)Math.pow(2, sequenceBits) - 1;
-
-    final static int nodeId = 11;
+    final static String machineName = System.getenv("POD_NAME");
+    final static int nodeId = Integer.parseInt(machineName.substring(machineName.lastIndexOf("-") + 1));
     final static int nodeBits = 10; // max is 1024
 
     public synchronized int generateSequence(long runningMillisecond){
@@ -36,35 +36,22 @@ public class UIDGenerator extends HttpServlet {
     }
 
     public int generateNodeId(){
-        return this.nodeId;
+
+        System.out.println("Node id is " + nodeId);
+        return nodeId;
     }
-
-    public void run(){
-        int nodeNumber = this.generateNodeId();
-
-        long epoch = System.currentTimeMillis();
-        int sequence = this.generateSequence(epoch);
-
-//        System.out.println("Echo before shift " + epoch);
-        epoch = epoch << (this.nodeBits + this.sequenceBits);
-        epoch = epoch | nodeNumber << this.sequenceBits;
-        epoch = epoch | sequence;
-
-        System.out.println("Echo after shift " + epoch);
-    }
-
 
 
     public void doGet(HttpServletRequest request, HttpServletResponse response)
             throws IOException
     {
-        int nodeNumber = this.generateNodeId();
+        int nodeId= this.generateNodeId();
 
         long epoch = System.currentTimeMillis();
         int sequence = this.generateSequence(epoch);
 
         epoch = epoch << (this.nodeBits + this.sequenceBits);
-        epoch = epoch | nodeNumber << this.sequenceBits;
+        epoch = epoch | nodeId << this.sequenceBits;
         epoch = epoch | sequence;
 
         response.getOutputStream().print("Echo after shift " + epoch);
