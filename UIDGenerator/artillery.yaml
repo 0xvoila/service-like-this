@@ -1,7 +1,7 @@
 config:
   target: "http://192.168.64.13:32000"
   http:
-    timeout: 1 # Responses have to be sent within 10 seconds or the request will be aborted
+    timeout: 1 # Responses have to be sent within 1 second or the request will be aborted
 
 
   phases:

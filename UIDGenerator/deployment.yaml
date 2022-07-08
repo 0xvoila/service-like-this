@@ -22,7 +22,7 @@ metadata:
   labels:
     app: uid-generator
 spec:
-  replicas: 10
+  replicas: 1
   serviceName: uid-generator-service
   selector:
     matchLabels:
