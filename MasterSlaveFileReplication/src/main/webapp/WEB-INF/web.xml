@@ -9,9 +9,18 @@
     <servlet-name>masterserver</servlet-name>
     <servlet-class>org.freshworks.MasterSlaveFileReplication.MasterServer</servlet-class>
   </servlet>
+  <servlet>
+    <servlet-name>masterserverlsm</servlet-name>
+    <servlet-class>org.freshworks.MasterSlaveFileReplication.MasterSlaveLSM</servlet-class>
+  </servlet>
   <servlet-mapping>
     <servlet-name>masterserver</servlet-name>
     <url-pattern>/masterserver</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>masterserverlsm</servlet-name>
+    <url-pattern>/masterserverlsm</url-pattern>
   </servlet-mapping>
 
 </web-app>
