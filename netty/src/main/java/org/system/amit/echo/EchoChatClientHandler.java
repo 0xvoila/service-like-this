@@ -1,4 +1,4 @@
-package org.system.amit;
+package org.system.amit.echo;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;

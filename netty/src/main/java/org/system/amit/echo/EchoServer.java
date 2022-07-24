@@ -1,4 +1,4 @@
-package org.system.amit;
+package org.system.amit.echo;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -34,8 +34,9 @@ public class EchoServer
                 public void initChannel(SocketChannel ch ) throws  Exception{
                     ChannelPipeline p = ch.pipeline();
 
-                    p.addLast(new StringDecoder());
+                     p.addLast(new StringDecoder());
                     p.addLast(new StringEncoder());
+                    p.addLast(new FileMessageCodec());
                     p.addLast(new EchoChatServerHandler());
                 }
             });

@@ -1,4 +1,4 @@
-package org.system.amit;
+package org.system.amit.echo;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
@@ -27,16 +27,21 @@ public class EchoClient {
                     ChannelPipeline pipeline = ch.pipeline();
                     pipeline.addLast(new StringDecoder());
                     pipeline.addLast(new StringEncoder());
+                    pipeline.addLast(new FileMessageCodec());
                     pipeline.addLast(new EchoChatClientHandler());
                 }
             });
 
-            ChannelFuture future = client.connect(host, port);
+            ChannelFuture future = client.connect(host, port).sync();
+
             while(scanner.hasNext()){
                 String input = scanner.nextLine();
                 Channel channel = null;
                 try {
                     channel = future.sync().channel();
+                    if(input.startsWith("file:")){
+                        channel.writeAndFlush(new FileMessage(input,"amit"));
+                    }
                     channel.writeAndFlush(input);
                     channel.flush();
                 } catch (InterruptedException e) {
