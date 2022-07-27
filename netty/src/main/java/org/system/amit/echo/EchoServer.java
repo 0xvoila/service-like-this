@@ -2,6 +2,7 @@ package org.system.amit.echo;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -40,8 +41,14 @@ public class EchoServer
                     p.addLast(new EchoChatServerHandler());
                 }
             });
-
             ChannelFuture ft = server.bind(PORT).sync();
+
+            ft.addListener(new ChannelFutureListener() {
+                @Override
+                public void operationComplete(ChannelFuture channelFuture) throws Exception {
+                    System.out.println("Server has started listening");
+                }
+            });
 
             ft.channel().closeFuture().sync();
 

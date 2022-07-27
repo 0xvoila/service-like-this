@@ -1,16 +1,17 @@
 package org.system.amit.echo;
 
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.SimpleChannelInboundHandler;
 
-public class EchoChatServerHandler extends SimpleChannelInboundHandler<String> {
+public class EchoChatServerHandler extends ChannelInboundHandlerAdapter {
 
     public void channelActive(ChannelHandlerContext ctx){
 
         System.out.println("Congrats EchoClient joined ");
     }
 
-    public void channelRead0(ChannelHandlerContext ctx, String msg){
+    public void channelRead(ChannelHandlerContext ctx, Object msg){
         System.out.println("Message received is " + msg);
         ctx.channel().writeAndFlush(msg);
     }

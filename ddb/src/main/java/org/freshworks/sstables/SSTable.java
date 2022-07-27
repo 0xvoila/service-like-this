@@ -1,2 +1,4 @@
-package org.freshworks.sstables;public class SSTable {
+package org.freshworks.sstables;
+
+public class SSTable {
 }

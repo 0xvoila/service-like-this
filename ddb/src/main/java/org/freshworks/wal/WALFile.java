@@ -1,2 +1,4 @@
-package org.freshworks.wal;public class WALFile {
+package org.freshworks.wal;
+
+public class WALFile {
 }

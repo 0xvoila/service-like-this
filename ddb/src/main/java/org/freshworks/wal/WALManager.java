@@ -1,2 +1,4 @@
-package org.freshworks.wal;public class WALManager {
+package org.freshworks.wal;
+
+public class WALManager {
 }
