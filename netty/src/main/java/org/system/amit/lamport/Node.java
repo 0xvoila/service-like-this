@@ -1,8 +1,8 @@
 package org.system.amit.lamport;
 
-import java.io.BufferedReader;
+import javax.xml.crypto.Data;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.util.Map;
 import java.util.Scanner;
 
 public class Node extends Thread{
@@ -14,7 +14,7 @@ public class Node extends Thread{
             Thread thInput = new Thread(() -> Node.insert());
             thInput.start();
 
-            JavaServer server = new JavaServer(args[0], args[1], Integer.parseInt(args[2]));
+            InternodeServer server = new InternodeServer(args[0], args[1], Integer.parseInt(args[2]));
             Thread thServer = new Thread(() -> {
                 try {
                     server.startServer();
@@ -24,12 +24,6 @@ public class Node extends Thread{
             });
             thServer.start();
 
-            // Enter data using BufferReader
-//            System.out.println("Enter the host and port to which this client connects to. Make sure to start the another server before this");
-//            BufferedReader reader = new BufferedReader( new InputStreamReader(System.in));
-//            // Reading data using readLine
-//            String input = reader.readLine();
-//            String[] x = input.split(" ");
             WritePathClient writePathClient = new WritePathClient();
             Thread thWritePathClient =  new Thread(() -> writePathClient.client());
             thWritePathClient.start();
@@ -38,7 +32,7 @@ public class Node extends Thread{
             Thread thReadPathClient =  new Thread(() -> readPathClient.client());
             thReadPathClient.start();
 
-//            thServer.join();
+            thServer.join();
             thWritePathClient.join();
             thReadPathClient.join();
         }
@@ -54,22 +48,30 @@ public class Node extends Thread{
     public static void insert(){
 
         Scanner scanner = new Scanner(System.in);
-        int lamport_counter = 0;
 
         while(scanner.hasNext()){
             String record = scanner.nextLine();
-            lamport_counter = lamport_counter + 1;
             String[] recordKeyValue = record.split(",",2);
 
             if ( recordKeyValue[0].equals("WRITE") || recordKeyValue[0].equals("UPDATE") || recordKeyValue[0].equals("DELETE")){
+                DataStructure.lamport_counter = DataStructure.lamport_counter + 1;
                 recordKeyValue = record.split(",",3);
-                Mutation mutation = new Mutation(recordKeyValue[0], recordKeyValue[1], recordKeyValue[2], lamport_counter);
+                Mutation mutation = new Mutation(recordKeyValue[0], recordKeyValue[1], recordKeyValue[2], DataStructure.lamport_counter);
                 DataStructure.writeQueue.add(mutation);
             }
-            else {
+            else if(recordKeyValue[0].equals("READ")) {
                 recordKeyValue = record.split(",",2);
-                IMutation iMutation = new IMutation(recordKeyValue[0], recordKeyValue[1], lamport_counter);
-                DataStructure.readQueue.add(iMutation);
+                Mutation mutation = new Mutation();
+                mutation.setCommand(recordKeyValue[0]);
+                mutation.setKey(recordKeyValue[1]);
+                mutation.setValue(null);
+                DataStructure.readQueue.add(mutation);
+            }
+
+            else if (recordKeyValue[0].equals("Show table")){
+
+                for(Map.Entry<String, Mutation> entrySet: DataStructure.RBTree.entrySet())
+                    System.out.println(entrySet.getKey() + " " + entrySet.getValue().getValue() + " " + entrySet.getValue().getTimestamp() + " " + entrySet.getValue().getTombstone());
             }
 
         }

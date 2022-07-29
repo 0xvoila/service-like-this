@@ -22,10 +22,11 @@ public class WritePathClient {
                 }
 
                 if (x.getCommand().equals("DELETE")){
-                    DataStructure.RBTree.put(x.getKey(), x.getValue() + "," + "DELETED");
+                    x.setTombstone(true);
+                    DataStructure.RBTree.put(x.getKey(), x );
                 }
                 else{
-                    DataStructure.RBTree.put(x.getKey(), x.getValue());
+                    DataStructure.RBTree.put(x.getKey(), x);
                 }
 
             }

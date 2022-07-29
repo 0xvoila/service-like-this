@@ -37,6 +37,7 @@ public class MasterSlaveLSM extends HttpServlet {
         if (this.lsm == null){
             this.lsm = new TreeMap<Integer, String>();
         }
+
         this.lsm.put(id, record);
         if (this.lsm.size() == 10000){
             flushLSM(this.lsm);
