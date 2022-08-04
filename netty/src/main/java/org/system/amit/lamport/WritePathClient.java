@@ -1,32 +1,22 @@
 package org.system.amit.lamport;
 
-import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelPipeline;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
-import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.codec.string.StringDecoder;
-import io.netty.handler.codec.string.StringEncoder;
-
 public class WritePathClient {
 
     public void client(){
 
         try{
             while(true){
-                Mutation x = DataStructure.writeQueue.poll();
+                Mutation x = Global.writeQueue.poll();
                 if ( x == null){
                     continue;
                 }
 
                 if (x.getCommand().equals("DELETE")){
                     x.setTombstone(true);
-                    DataStructure.RBTree.put(x.getKey(), x );
+                    MemtableManager.write(x.getKey(), x );
                 }
                 else{
-                    DataStructure.RBTree.put(x.getKey(), x);
+                    MemtableManager.write(x.getKey(), x);
                 }
 
             }

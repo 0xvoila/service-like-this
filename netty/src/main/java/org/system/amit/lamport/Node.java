@@ -1,6 +1,5 @@
 package org.system.amit.lamport;
 
-import javax.xml.crypto.Data;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Scanner;
@@ -32,9 +31,16 @@ public class Node extends Thread{
             Thread thReadPathClient =  new Thread(() -> readPathClient.client());
             thReadPathClient.start();
 
+
+            SSTableManager ssTableManagerClient = new SSTableManager();
+            Thread thSSTableManagerClient =  new Thread(() -> ssTableManagerClient.client());
+            thSSTableManagerClient.start();
+
+
             thServer.join();
             thWritePathClient.join();
             thReadPathClient.join();
+            thSSTableManagerClient.join();
         }
         catch(Exception e){
             System.out.println(e.getMessage());
@@ -54,10 +60,10 @@ public class Node extends Thread{
             String[] recordKeyValue = record.split(",",2);
 
             if ( recordKeyValue[0].equals("WRITE") || recordKeyValue[0].equals("UPDATE") || recordKeyValue[0].equals("DELETE")){
-                DataStructure.lamport_counter = DataStructure.lamport_counter + 1;
+                Global.lamport_counter = Global.lamport_counter + 1;
                 recordKeyValue = record.split(",",3);
-                Mutation mutation = new Mutation(recordKeyValue[0], recordKeyValue[1], recordKeyValue[2], DataStructure.lamport_counter);
-                DataStructure.writeQueue.add(mutation);
+                Mutation mutation = new Mutation(recordKeyValue[0], recordKeyValue[1], recordKeyValue[2], Global.lamport_counter);
+                Global.writeQueue.add(mutation);
             }
             else if(recordKeyValue[0].equals("READ")) {
                 recordKeyValue = record.split(",",2);
@@ -65,12 +71,12 @@ public class Node extends Thread{
                 mutation.setCommand(recordKeyValue[0]);
                 mutation.setKey(recordKeyValue[1]);
                 mutation.setValue(null);
-                DataStructure.readQueue.add(mutation);
+                Global.readQueue.add(mutation);
             }
 
             else if (recordKeyValue[0].equals("Show table")){
 
-                for(Map.Entry<String, Mutation> entrySet: DataStructure.RBTree.entrySet())
+                for(Map.Entry<String, Mutation> entrySet: Global.RBTree.entrySet())
                     System.out.println(entrySet.getKey() + " " + entrySet.getValue().getValue() + " " + entrySet.getValue().getTimestamp() + " " + entrySet.getValue().getTombstone());
             }
 

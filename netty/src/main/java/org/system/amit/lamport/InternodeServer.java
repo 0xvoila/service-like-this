@@ -1,5 +1,4 @@
 package org.system.amit.lamport;
-import javax.xml.crypto.Data;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -44,26 +43,26 @@ public class InternodeServer {
                         outputStreamWriter = new ObjectOutputStream(clientSocket.getOutputStream());
                         inputStreamReader = new ObjectInputStream(clientSocket.getInputStream());
                         Mutation x = (Mutation)inputStreamReader.readObject();
-                        Mutation mutation = DataStructure.RBTree.get(x.getKey());
+                        Mutation mutation = Global.RBTree.get(x.getKey());
 
                         if (mutation != null){
                             if (x.getValue() == null){
-                                DataStructure.lamport_counter = mutation.getTimestamp() + 1;
+                                Global.lamport_counter = mutation.getTimestamp() + 1;
                                 outputStreamWriter.writeObject(mutation);
                                 outputStreamWriter.flush();
                                 clientSocket.close();
                             }
                             else if (x.getTimestamp() > mutation.getTimestamp()){
-                                DataStructure.lamport_counter = x.getTimestamp() + 1;
-                                DataStructure.writeQueue.add(x);
+                                Global.lamport_counter = x.getTimestamp() + 1;
+                                Global.writeQueue.add(x);
                                 outputStreamWriter.writeObject(mutation);
                                 outputStreamWriter.flush();
                                 clientSocket.close();
                             }
                         }
                         else{
-                            DataStructure.lamport_counter = x.getTimestamp() + 1;
-                            DataStructure.writeQueue.add(x);
+                            Global.lamport_counter = x.getTimestamp() + 1;
+                            Global.writeQueue.add(x);
                             outputStreamWriter.writeObject(null);
                             outputStreamWriter.flush();
                             clientSocket.close();
