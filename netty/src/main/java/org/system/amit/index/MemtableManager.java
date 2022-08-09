@@ -1,10 +1,12 @@
 package org.system.amit.index;
 
+import java.util.HashMap;
+
 public class MemtableManager {
 
     private static Memtable memtable;
 
-    public static void write(String key, String mutation) {
+    public static void write(String key, HashMap<String, Object> mutation) {
         if (memtable == null || memtable.getStatus() != null) {
             System.out.println("memtable is null");
             memtable = new Memtable();
@@ -23,7 +25,7 @@ public class MemtableManager {
         }
     }
 
-    public static String read(String key){
+    public static HashMap<String, Object> read(String key){
 
         if (memtable == null){
             return null;

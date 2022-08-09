@@ -27,10 +27,10 @@ public class SSTable {
             minKey = memtable.RBTree.firstEntry().getKey();
             maxKey = memtable.RBTree.lastEntry().getKey();
 
-            FileWriter fileOut = new FileWriter(fileName);
+            FileWriter fileOut = new FileWriter("data/" + fileName);
             BufferedWriter bufferedWriter = new BufferedWriter(fileOut);
 
-            for ( Map.Entry<String, String> entry :memtable.RBTree.entrySet()) {
+            for ( Map.Entry<String, HashMap<String, Object>> entry :memtable.RBTree.entrySet()) {
                 bufferedWriter.write(entry.getKey() + "," + entry.getValue());
                 bufferedWriter.newLine();
             }

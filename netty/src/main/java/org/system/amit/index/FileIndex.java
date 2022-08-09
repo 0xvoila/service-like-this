@@ -18,7 +18,7 @@ public class FileIndex {
 
         Thread createIndexTh = new Thread(()-> {
             try {
-                createIndex("database.csv");
+                createIndex("data/database.csv");
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -27,7 +27,7 @@ public class FileIndex {
 
         Thread searchTh = new Thread(()-> {
             try {
-                search("database.csv");
+                search("data/database.csv");
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -45,9 +45,9 @@ public class FileIndex {
     public static void createIndex(String fileName) throws IOException {
 
         BufferedReader reader = new BufferedReader(new FileReader(fileName));
+        String[] headerArray = reader.readLine().split(",");
+        HashMap<String, Object> map = new HashMap<>();
 
-        long fileLocation = 0;
-        long counter = 0;
         String input = "";
         while(true){
 
@@ -55,8 +55,14 @@ public class FileIndex {
             if ( input == null){
                 break;
             }
+            String[] inputArray = input.split(",");
             String [] x = input.split(",",2);
-            MemtableManager.write(x[0], input);
+
+            for(int i=0; i<headerArray.length; i++){
+                map.put(headerArray[i], inputArray[i]);
+            }
+
+            MemtableManager.write(x[0], map);
         }
     }
 

@@ -58,7 +58,7 @@ public class SSTableManager {
             if (minKey.compareTo(key) < 0 && maxKey.compareTo(key) > 0){
 //                Load the SSTable from disk and find the record. You may find it or you may not
 
-                FileReader fin = new FileReader(a.get("sstable"));
+                FileReader fin = new FileReader("data/" + a.get("sstable"));
                 BufferedReader reader = new BufferedReader(fin);
 
                 while(true){

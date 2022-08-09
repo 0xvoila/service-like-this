@@ -1,5 +1,6 @@
 package org.system.amit.index;
 
+import java.util.HashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
 public class Memtable {
@@ -12,13 +13,13 @@ public class Memtable {
         FLUSH_ENDED
     };
 
-    public ConcurrentSkipListMap<String, String> RBTree = new ConcurrentSkipListMap<>();
+    public ConcurrentSkipListMap<String, HashMap<String, Object>> RBTree = new ConcurrentSkipListMap<>();
 
-    public void write(String key, String mutation){
+    public void write(String key, HashMap<String, Object> mutation){
         this.RBTree.put(key, mutation);
     }
 
-    public String read(String key){
+    public HashMap<String, Object> read(String key){
         return this.RBTree.get(key);
     }
 
