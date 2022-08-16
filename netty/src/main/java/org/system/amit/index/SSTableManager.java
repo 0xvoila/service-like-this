@@ -14,6 +14,16 @@ public class SSTableManager {
     public static void client(){
 
         try{
+            File f = new File("./data/ss_tables.txt");
+
+            if (f.exists()){
+                FileInputStream fin
+                        = new FileInputStream("data/ss_tables.txt");
+
+                ObjectInputStream oin
+                        = new ObjectInputStream(fin);
+                ssTables = (ArrayList<HashMap<String, String>>)oin.readObject();
+            }
 
             while(true){
                 Memtable memtable = Global.getInstance().flushRBTree.poll();
@@ -22,9 +32,6 @@ public class SSTableManager {
                     continue;
                 }
 
-                if (ssTables.size() > 10000){
-                    // Flush ssTables to the disk for durability
-                }
 //                here create a new SSTable File and create the flush
                 System.out.println("Flushing memtable");
                 System.out.println("Queue size is " + Global.getInstance().flushRBTree.size());
@@ -38,6 +45,13 @@ public class SSTableManager {
 
                 SSTable ssTable = new SSTable(name,indexFileName);
                 ssTables.add(ssTable.flush(memtable));
+
+                FileOutputStream fos
+                        = new FileOutputStream("data/ss_tables.txt");
+
+                ObjectOutputStream oos
+                        = new ObjectOutputStream(fos);
+                oos.writeObject(ssTables);
 
             }
         }
