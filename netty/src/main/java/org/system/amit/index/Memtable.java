@@ -13,9 +13,20 @@ public class Memtable {
         FLUSH_ENDED
     };
 
-    public ConcurrentSkipListMap<String, HashMap<String, Object>> RBTree = new ConcurrentSkipListMap<>();
+    public ConcurrentSkipListMap<String, HashMap<String, Object>> RBTree = null;
+
+    public Memtable(){
+        this.RBTree = new ConcurrentSkipListMap<>();
+    }
+
+    public void clearMemTable(){
+        this.RBTree.clear();
+        this.RBTree = null;
+    }
+
 
     public void write(String key, HashMap<String, Object> mutation){
+        Global.getInstance().cache.remove(key);
         this.RBTree.put(key, mutation);
     }
 

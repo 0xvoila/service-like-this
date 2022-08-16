@@ -8,15 +8,15 @@ public class MemtableManager {
 
     public static void write(String key, HashMap<String, Object> mutation) {
         if (memtable == null || memtable.getStatus() != null) {
-            System.out.println("memtable is null");
+            System.out.println("Memtable is null");
             memtable = new Memtable();
             memtable.write(key, mutation);
         }
 
-        else if (memtable.getSize() > 10000){
-            System.out.println("mem table is full");
+        else if (memtable.getSize() > 100000){
+            System.out.println("Adding memtable to queue");
             memtable.markQueuedForFlush();
-            Global.flushRBTree.add(memtable);
+            Global.getInstance().flushRBTree.add(memtable);
             memtable = new Memtable();
             memtable.write(key, mutation);
         }

@@ -1,38 +1,42 @@
 package org.system.amit.index;
 
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Random;
+import java.util.*;
 
 public class SSTableManager {
 
     static ArrayList<HashMap<String, String>> ssTables = new ArrayList<HashMap<String, String>>();
 
-    public void client(){
+    public static void client(){
 
         try{
 
             while(true){
-                Memtable memtable = Global.flushRBTree.poll();
+                Memtable memtable = Global.getInstance().flushRBTree.poll();
                 if ( memtable == null){
+//                    System.out.println("Queue is empty");
                     continue;
                 }
 
-                if (ssTables.size() > 1000000){
+                if (ssTables.size() > 10000){
                     // Flush ssTables to the disk for durability
                 }
 //                here create a new SSTable File and create the flush
-
-                System.out.println("Got the memtable to flush");
+                System.out.println("Flushing memtable");
+                System.out.println("Queue size is " + Global.getInstance().flushRBTree.size());
                 Random random=new Random();
-                String ext = ".txt";
+                String dataExt = "_data.txt";
+                String indexExt = "_index.txt";
                 File dir = new File("./");
-                String name = String.format("%s%s",System.currentTimeMillis(),random.nextInt(100000)+ext);
+                String name = String.format("%s%s",System.currentTimeMillis(),random.nextInt(100000)+dataExt);
 
-                SSTable ssTable = new SSTable(name);
+                String indexFileName = String.format("%s%s",System.currentTimeMillis(),random.nextInt(100000)+indexExt);
+
+                SSTable ssTable = new SSTable(name,indexFileName);
                 ssTables.add(ssTable.flush(memtable));
 
             }
@@ -45,9 +49,14 @@ public class SSTableManager {
         }
     }
 
-    public static String read(String key) throws IOException {
+    public static String read(String key) throws IOException, ClassNotFoundException {
 
         String returnValue = null;
+
+        if ( Global.getInstance().cache.get(key) != null){
+            returnValue = Global.getInstance().cache.get(key);
+            return returnValue;
+        }
 
         for (HashMap<String, String> a: ssTables) {
 
@@ -61,19 +70,28 @@ public class SSTableManager {
                 FileReader fin = new FileReader("data/" + a.get("sstable"));
                 BufferedReader reader = new BufferedReader(fin);
 
+                ObjectMapper mapper = new ObjectMapper();
+
+                HashMap<String,Long> ssIndex = new HashMap<>();
+
                 while(true){
 
-                    String input = reader.readLine();
-                    if (input == null){
+                    String s = reader.readLine();
+
+                    if (s == null){
                         break;
                     }
-                    String[] recordKey = input.split(",",2);
+                    TypeReference<HashMap<String,Long>> typeRef
+                            = new TypeReference<HashMap<String,Long>>() {};
 
-                    if (recordKey[0].equals(key)){
-                        System.out.println("value found is " + recordKey[1]);
-                        returnValue = recordKey[1];
+                    Map.Entry<String, Long > x = mapper.readValue(s, typeRef).entrySet().iterator().next();
+                    if ( x.getKey().equals(key)){
+                        RandomAccessFile dataFile = new RandomAccessFile("data/" + a.get("dataFileName"),"r");
+                        dataFile.seek(x.getValue());
+                        returnValue = dataFile.readLine();
+                        Global.getInstance().cache.put(x.getKey(), returnValue);
                     }
-                } // while close
+                }
 
             }
         }
