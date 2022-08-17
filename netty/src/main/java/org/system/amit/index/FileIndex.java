@@ -15,18 +15,22 @@ public class FileIndex {
 
     static HashMap<String, Long>  index = new HashMap<>();
 
-    public static void main(String args[]) throws IOException, InterruptedException {
+    public static void main(String args[]) throws IOException, InterruptedException, ClassNotFoundException {
 
-//        memoryFiller();
 
         ExecutorService service = Executors.newFixedThreadPool(100);
+//        First load the config
+        SSTableManager.loadConfig(args[0]);
 
-        for(int i=0; i<50; i++){
+
+        for(int i=0; i<100; i++){
             service.submit(() -> SSTableManager.client());
         }
 
+
         Thread createIndexTh = new Thread(()-> {
             try {
+
                 createPrimaryIndex("data/database.csv");
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -73,27 +77,36 @@ public class FileIndex {
         String[] headerArray = reader.readLine().split(",");
 
         String input = "";
-        while(true){
 
-//            Thread.sleep(1);
-            HashMap<String, Object> map = new HashMap<>();
-            input = reader.readLine();
-            if ( input == null){
-                break;
-            }
+        int writeCount = 0;
 
-            String[] y = input.split(",");
-
-            for(int i=0; i<headerArray.length; i++){
-                map.put(headerArray[i], y[i]);
-            }
-
-//            Here assuming first field would be the primary field in the record.
-//            It can be customized as per requirement
-
-            MemtableManager.write(input.split(",",2)[0], map);
-
-        }
+//        while(true){
+//
+//            HashMap<String, Object> map = new HashMap<>();
+//            input = reader.readLine();
+//            if ( input == null){
+//                break;
+//            }
+//
+//            String[] y = input.split(",");
+//
+//            for(int i=0; i<headerArray.length; i++){
+//                map.put(headerArray[i], y[i]);
+//            }
+//
+////            Here assuming first field would be the primary field in the record.
+////            It can be customized as per requirement
+//
+//            MemtableManager.write(input.split(",",2)[0], map);
+//            writeCount = writeCount + 1;
+//
+//            if ( writeCount%100000 == 0 ){
+//                System.out.println("5 sec WAIT START");
+//                Thread.sleep(5000);
+//                System.out.println("5 sec WAIT END");
+//            }
+//
+//        }
 
         long stopTime = System.currentTimeMillis();
         long elapsedTime = stopTime - startTime;

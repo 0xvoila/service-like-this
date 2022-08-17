@@ -1,8 +1,11 @@
 package org.system.amit.index;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.hash.BloomFilter;
+import com.google.common.hash.Funnels;
 
 import java.io.*;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -12,6 +15,8 @@ public class SSTable {
 
     String indexFileName = "";
 
+    String bloomFileName = "";
+
     String minKey = "";
     String maxKey = "";
 
@@ -20,20 +25,24 @@ public class SSTable {
         this.indexFileName = indexFileName;
     }
 
-    public HashMap<String,String> flush(Memtable memtable){
+    public HashMap<String,Object> flush(Memtable memtable){
 
-        HashMap<String, String> x = new HashMap<String, String>();
+        HashMap<String, Object> x = new HashMap<String, Object>();
 
 
         try{
 
+            BloomFilter<String> filter = BloomFilter.create(
+                    Funnels.stringFunnel(Charset.forName("UTF-8")), 100000, 0.01);
+
             minKey = memtable.RBTree.firstEntry().getKey();
             maxKey = memtable.RBTree.lastEntry().getKey();
 
-            FileWriter fileOut = new FileWriter("data/" + dataFileName);
+            FileWriter fileOut = new FileWriter(Global.getInstance().databaseDirectory + dataFileName);
             BufferedWriter bufferedWriter = new BufferedWriter(fileOut);
 
-            FileWriter fileOutIndex = new FileWriter("data/" + indexFileName);
+
+            FileWriter fileOutIndex = new FileWriter(Global.getInstance().databaseDirectory + indexFileName);
             BufferedWriter objectOutIndex = new BufferedWriter(fileOutIndex);
 
             long offsetCounter = 0;
@@ -43,6 +52,8 @@ public class SSTable {
 
                 bufferedWriter.write(entry.getKey() + "," + entry.getValue().toString());
                 bufferedWriter.newLine();
+
+                filter.put(entry.getKey());
 
 //                index.put(entry.getKey(), offsetCounter);
                 objectOutIndex.write("{" + '"' + entry.getKey() + '"' + ":" + offsetCounter + "}");
@@ -63,6 +74,7 @@ public class SSTable {
             x.put("max_key",maxKey);
             x.put("sstable", indexFileName);
             x.put("dataFileName", dataFileName);
+            x.put("bloom_filter", filter);
 
 
             memtable = null;

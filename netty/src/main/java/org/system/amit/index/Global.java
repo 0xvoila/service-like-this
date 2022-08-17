@@ -11,9 +11,15 @@ public class Global {
     public ConcurrentLinkedQueue<Memtable> flushRBTree = null;
     public HashMap<String, String> cache = null;
 
+    public String databaseDirectory = null;
+
     private Global(){
         this.flushRBTree = new ConcurrentLinkedQueue<>();
         this.cache = new HashMap<>();
+    }
+
+    public void setDatabaseDirectory(String databaseDirectory){
+        this.databaseDirectory = databaseDirectory;
     }
     public static Global getInstance(){
         if ( global_instance == null){

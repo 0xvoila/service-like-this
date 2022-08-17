@@ -3,27 +3,33 @@ package org.system.amit.index;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.hash.BloomFilter;
 
 import java.io.*;
 import java.util.*;
 
 public class SSTableManager {
 
-    static ArrayList<HashMap<String, String>> ssTables = new ArrayList<HashMap<String, String>>();
+    static ArrayList<HashMap<String, Object>> ssTables = new ArrayList<HashMap<String, Object>>();
 
+    public static void loadConfig(String databaseName) throws IOException, ClassNotFoundException {
+
+        Global.getInstance().setDatabaseDirectory("data/" + databaseName + "/");
+        File dir = new File( Global.getInstance().databaseDirectory);
+        if (!dir.exists()) dir.mkdirs();
+        File f = new File( Global.getInstance().databaseDirectory +  "ss_tables.txt");
+        if (f.exists()){
+            FileInputStream fin
+                    = new FileInputStream(Global.getInstance().databaseDirectory + "ss_tables.txt");
+
+            ObjectInputStream oin
+                    = new ObjectInputStream(fin);
+            ssTables = (ArrayList<HashMap<String, Object>>)oin.readObject();
+        }
+    }
     public static void client(){
 
         try{
-            File f = new File("./data/ss_tables.txt");
-
-            if (f.exists()){
-                FileInputStream fin
-                        = new FileInputStream("data/ss_tables.txt");
-
-                ObjectInputStream oin
-                        = new ObjectInputStream(fin);
-                ssTables = (ArrayList<HashMap<String, String>>)oin.readObject();
-            }
 
             while(true){
                 Memtable memtable = Global.getInstance().flushRBTree.poll();
@@ -47,7 +53,7 @@ public class SSTableManager {
                 ssTables.add(ssTable.flush(memtable));
 
                 FileOutputStream fos
-                        = new FileOutputStream("data/ss_tables.txt");
+                        = new FileOutputStream(Global.getInstance().databaseDirectory + "ss_tables.txt");
 
                 ObjectOutputStream oos
                         = new ObjectOutputStream(fos);
@@ -72,16 +78,18 @@ public class SSTableManager {
             return returnValue;
         }
 
-        for (HashMap<String, String> a: ssTables) {
+        for (HashMap<String, Object> a: ssTables) {
 
-            String minKey = a.get("min_key");
-            String maxKey = a.get("max_key");
+            String minKey = (String)a.get("min_key");
+            String maxKey = (String)a.get("max_key");
+            BloomFilter<String> filter = (BloomFilter<String>)a.get("bloom_filter");
 
+            System.out.println("Bloom says " + filter.mightContain(key));
 //            Check if key is between minKey and maxKey
-            if (minKey.compareTo(key) < 0 && maxKey.compareTo(key) > 0){
+            if (minKey.compareTo(key) < 0 && maxKey.compareTo(key) > 0 && filter.mightContain(key)){
 //                Load the SSTable from disk and find the record. You may find it or you may not
 
-                FileReader fin = new FileReader("data/" + a.get("sstable"));
+                FileReader fin = new FileReader(Global.getInstance().databaseDirectory + a.get("sstable"));
                 BufferedReader reader = new BufferedReader(fin);
 
                 ObjectMapper mapper = new ObjectMapper();
@@ -100,7 +108,7 @@ public class SSTableManager {
 
                     Map.Entry<String, Long > x = mapper.readValue(s, typeRef).entrySet().iterator().next();
                     if ( x.getKey().equals(key)){
-                        RandomAccessFile dataFile = new RandomAccessFile("data/" + a.get("dataFileName"),"r");
+                        RandomAccessFile dataFile = new RandomAccessFile(Global.getInstance().databaseDirectory + a.get("dataFileName"),"r");
                         dataFile.seek(x.getValue());
                         returnValue = dataFile.readLine();
                         Global.getInstance().cache.put(x.getKey(), returnValue);
