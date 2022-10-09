@@ -55,7 +55,7 @@ public class Engine {
             }
         });
 
-        executorService.awaitTermination(100000, TimeUnit.DAYS);
+        executorService.awaitTermination(100, TimeUnit.DAYS);
 
         System.out.println("This is the end");
     }
@@ -65,11 +65,14 @@ public class Engine {
         scheduler.addEndPoints("Google",urlList);
 
 
-        while(scheduler.hasNext("Google")){
-            Thread.sleep(10000);
-            ArrayList<String> urls = scheduler.getEndpoints( "Google" , 1);
-            System.out.println("Urls is " + urls.get(0));
-            downloader.submit(urls);
+        while(true){
+            if(scheduler.hasNext("Google")){
+                Thread.sleep(10);
+                ArrayList<String> urls = scheduler.getEndpoints( "Google" , 1);
+                System.out.println("Urls is " + urls.get(0));
+                downloader.submit(urls);
+            }
+
         }
     }
     public void consume() throws NamingException, IOException, TimeoutException, ClassNotFoundException, InstantiationException, IllegalAccessException {

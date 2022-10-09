@@ -29,7 +29,7 @@ public class Downloader {
 
     public void submit(ArrayList<String> urls ){
 //        Submit Urls to launch in new thread
-        ExecutorService executorService = Executors.newFixedThreadPool(2);
+        ExecutorService executorService = Executors.newFixedThreadPool(10000);
         for (String url :
                 urls) {
             executorService.submit(() -> {
@@ -52,7 +52,7 @@ public class Downloader {
 
         HashMap<HttpGet, HttpResponse> c = new HashMap<HttpGet, HttpResponse>();
         c.put(request, response);
-        System.out.println(EntityUtils.toString(response.getEntity()));
+//        System.out.println(EntityUtils.toString(response.getEntity()));
         publish(c);
     }
 

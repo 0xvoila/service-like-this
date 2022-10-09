@@ -41,7 +41,7 @@ public class OktaEndpointGenerator implements EndpointGeneratorInterface {
                     String body = EntityUtils.toString(entity);
                     ObjectMapper mapper = new ObjectMapper();
                     JsonNode actualObj = mapper.readTree(body);
-
+                    System.out.println(actualObj);
                     if (actualObj.isEmpty()){
                         return new ArrayList<String>();
                     }
@@ -53,7 +53,7 @@ public class OktaEndpointGenerator implements EndpointGeneratorInterface {
                         x.put("_page", Integer.toString(count));
                         String queryString = mapToQuery(x);
 
-                        URI newURI = new URIBuilder().setScheme(uri.getScheme()).setHost(uri.getHost()).setPath(uri.getPath()).setCustomQuery(queryString).build();
+                        URI newURI = new URIBuilder().setScheme(uri.getScheme()).setHost(uri.getHost()).setPort(3000).setPath(uri.getPath()).setCustomQuery(queryString).build();
                         request.setURI(newURI);
 
                         ArrayList<String> res = new ArrayList<String>();

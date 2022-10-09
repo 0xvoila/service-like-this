@@ -33,6 +33,10 @@ public class Scheduler {
             accountUrls.put(accountName, x);
             urls.stream().map(x::push).forEach(y -> System.out.println(y));
         }
+        else{
+            accountUrls.put(accountName, x);
+            urls.stream().map(x::push).forEach(y -> System.out.println(y));
+        }
 
 
 //        Set<String> s = new HashSet<>();
