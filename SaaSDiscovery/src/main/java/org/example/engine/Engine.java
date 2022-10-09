@@ -5,6 +5,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.example.Queue;
 import org.example.downloader.Downloader;
 import org.example.generator.EndpointGenerator;
+import org.example.models.SaaSObject;
 import org.example.scheduler.Scheduler;
 
 import javax.naming.NamingException;
@@ -61,16 +62,17 @@ public class Engine {
     }
     public void setup() throws InstantiationException, IllegalAccessException, ClassNotFoundException, InterruptedException {
 
-        ArrayList<String> urlList = endpointGenerator.getNextEndpoints("11312", "okta", "Google", null, null);
-        scheduler.addEndPoints("Google",urlList);
+        SaaSObject saaSObject = new SaaSObject("11312", "Google", "okta", null, null);
+        ArrayList<SaaSObject> saaSObjectsList = endpointGenerator.getNextEndpoints(saaSObject);
+        scheduler.addEndPoints("Google",saaSObjectsList);
 
 
         while(true){
             if(scheduler.hasNext("Google")){
                 Thread.sleep(10);
-                ArrayList<String> urls = scheduler.getEndpoints( "Google" , 1);
-                System.out.println("Urls is " + urls.get(0));
-                downloader.submit(urls);
+                ArrayList<SaaSObject> saaSObjects = scheduler.getEndpoints( "Google" , 1);
+                System.out.println("Urls is " + saaSObjects.get(0).getRequest().getURI());
+                downloader.submit(saaSObjects);
             }
 
         }
@@ -78,13 +80,11 @@ public class Engine {
     public void consume() throws NamingException, IOException, TimeoutException, ClassNotFoundException, InstantiationException, IllegalAccessException {
 
         while(true){
-            Map<HttpGet, HttpResponse> x = Queue.queue.poll();
+            SaaSObject x = Queue.queue.poll();
 
             if ( x != null){
-                HttpGet request = x.entrySet().iterator().next().getKey();
-                HttpResponse response = x.entrySet().iterator().next().getValue();
 
-                ArrayList<String> urlList = endpointGenerator.getNextEndpoints("11312", "okta", "Google", request, response);
+                ArrayList<SaaSObject> urlList = endpointGenerator.getNextEndpoints(x);
                 scheduler.addEndPoints("Google",urlList);
             }
         }

@@ -1,12 +1,14 @@
 package org.example.scheduler;
 
+import org.example.models.SaaSObject;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class Scheduler {
 
     HashMap<String, HashMap<String, Object>> database = new HashMap<>();
-    HashMap<String, Stack<String>> accountUrls = new HashMap<>();
+    HashMap<String, Stack<SaaSObject>> accountUrls = new HashMap<>();
 
     public Scheduler(){
         HashMap<String, Object> c = new HashMap<String, Object>();
@@ -23,10 +25,10 @@ public class Scheduler {
         database.put("Microsoft", c);
     }
 
-    public void addEndPoints(String accountName, ArrayList<String> urls){
+    public void addEndPoints(String accountName, ArrayList<SaaSObject> urls){
 
 //        Here use the bloom filter if url in urls has been traversed
-        Stack<String> x = accountUrls.get(accountName);
+        Stack<SaaSObject> x = accountUrls.get(accountName);
 
         if ( x == null ){
             x = new Stack<>();
@@ -49,10 +51,10 @@ public class Scheduler {
 //        accountUrls.put(accountName, urls);
     }
 
-    public ArrayList<String> getEndpoints(String accountName, int number){
+    public ArrayList<SaaSObject> getEndpoints(String accountName, int number){
 
-        Stack<String> x = accountUrls.get(accountName);
-        ArrayList<String> y = new ArrayList<>();
+        Stack<SaaSObject> x = accountUrls.get(accountName);
+        ArrayList<SaaSObject> y = new ArrayList<>();
 
         if (x.size() >= number){
             for (int i=0; i<number; i++){
@@ -72,7 +74,7 @@ public class Scheduler {
     // possible to call that urls are not available to return now but may be available after X seconds.
 
     public Boolean hasNext(String accountName){
-        Stack<String> x = accountUrls.get(accountName);
+        Stack<SaaSObject> x = accountUrls.get(accountName);
 
         if ( x.empty()){
             return false;

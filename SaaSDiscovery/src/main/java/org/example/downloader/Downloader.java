@@ -11,6 +11,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
 import org.example.Queue;
+import org.example.models.SaaSObject;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -20,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 
@@ -27,10 +29,10 @@ public class Downloader {
 
     CloseableHttpClient httpClient = HttpClients.createDefault();
 
-    public void submit(ArrayList<String> urls ){
+    public void submit(ArrayList<SaaSObject> urls ) throws InterruptedException {
 //        Submit Urls to launch in new thread
         ExecutorService executorService = Executors.newFixedThreadPool(10000);
-        for (String url :
+        for (SaaSObject url :
                 urls) {
             executorService.submit(() -> {
                 try {
@@ -42,23 +44,24 @@ public class Downloader {
                 }
             });
         }
+
+//        executorService.awaitTermination(100, TimeUnit.DAYS);
     }
 
-    public void downloadResource(String url) throws IOException, NamingException, TimeoutException {
+    public void downloadResource(SaaSObject saaSObject) throws IOException, NamingException, TimeoutException {
 
-        System.out.println("URL is " +url);
-        HttpGet request = new HttpGet(url);
-        CloseableHttpResponse response = httpClient.execute(request);
+        System.out.println("URL is " +saaSObject.getRequest().getURI());
+        CloseableHttpResponse response = httpClient.execute(saaSObject.getRequest());
 
-        HashMap<HttpGet, HttpResponse> c = new HashMap<HttpGet, HttpResponse>();
-        c.put(request, response);
+        saaSObject.setRequest(response);
+
 //        System.out.println(EntityUtils.toString(response.getEntity()));
-        publish(c);
+        publish(saaSObject);
     }
 
-    public void publish(Map<HttpGet, HttpResponse> x) throws NamingException, IOException, TimeoutException {
+    public void publish(SaaSObject saaSObject) throws NamingException, IOException, TimeoutException {
 
-        Queue.queue.add(x);
+        Queue.queue.add(saaSObject);
 
     }
 }

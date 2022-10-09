@@ -2,6 +2,7 @@ package org.example.generator;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.example.models.SaaSObject;
 
 import java.io.IOException;
 import java.net.http.HttpRequest;
@@ -16,11 +17,11 @@ public class EndpointGenerator {
         this.properties = new Properties();
         this.properties.setProperty("okta","org.example.generator.OktaEndpointGenerator");
     }
-    public ArrayList<String> getNextEndpoints(String syncId, String appName, String accountName, HttpGet request, HttpResponse response) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+    public ArrayList<SaaSObject> getNextEndpoints(SaaSObject saaSObject) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
-        Class<?>  cl = Class.forName(this.properties.getProperty(appName));
+        Class<?>  cl = Class.forName(this.properties.getProperty(saaSObject.getAppName()));
         EndpointGeneratorInterface c = (EndpointGeneratorInterface) cl.newInstance();
-        ArrayList<String> urlList = c.getNextEndpoints(syncId,accountName, request, response);
+        ArrayList<SaaSObject> urlList = c.getNextEndpoints(saaSObject);
         return urlList;
     }
 }

@@ -1,0 +1,15 @@
+Generator:
+  default :
+  generator: defaultEndpointGenerator
+  - urls:
+      - http://localhost:3000/apps?_page=0
+      - http://localhost:3000/users?_page=0
+      - http://localhost:3000/usage?_page=0
+  pagination:
+    - attribute: _page
+
+  okta: oktaEndpointGenerator
+  urls:
+    -
+
+

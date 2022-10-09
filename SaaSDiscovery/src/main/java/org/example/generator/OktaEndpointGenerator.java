@@ -8,6 +8,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.util.EntityUtils;
+import org.example.models.SaaSObject;
 
 import java.io.IOException;
 import java.net.URI;
@@ -19,23 +20,26 @@ import java.util.stream.Stream;
 
 public class OktaEndpointGenerator implements EndpointGeneratorInterface {
 
-    ArrayList<String> seed_url;
+    String seed_url;
 
     public OktaEndpointGenerator(){
-        seed_url = new ArrayList<>();
-        seed_url.add("http://localhost:3000/apps?_page=0");
+        this.seed_url = "http://localhost:3000/apps?_page=0";
+
     }
     @Override
-    public ArrayList<String> getNextEndpoints(String syncId, String accountName, HttpGet request, HttpResponse response) {
+    public ArrayList<SaaSObject> getNextEndpoints(SaaSObject saaSObject) {
 
-        if (request == null && response == null){
+        if (saaSObject.getRequest() == null && saaSObject.getRequest() == null){
 //            It means that it is the starting point for this account
-            return this.seed_url;
+            saaSObject.setRequest(this.seed_url);
+            ArrayList<SaaSObject> x = new ArrayList<>();
+            x.add(saaSObject);
+            return x;
         }
         else{
             try{
 
-                HttpEntity entity = response.getEntity();
+                HttpEntity entity = saaSObject.getResponse().getEntity();
 
                 if ( entity != null){
                     String body = EntityUtils.toString(entity);
@@ -43,10 +47,19 @@ public class OktaEndpointGenerator implements EndpointGeneratorInterface {
                     JsonNode actualObj = mapper.readTree(body);
                     System.out.println(actualObj);
                     if (actualObj.isEmpty()){
-                        return new ArrayList<String>();
+                        String x = "http://localhost:3000/users?_page=1";
+
+                        saaSObject.setRequest(x);
+                        ArrayList<SaaSObject> aa = new ArrayList<>();
+                        aa.add(saaSObject);
+                        return aa;
+//
+//                        ArrayList<String> y = new ArrayList<String>();
+//                        y.add(x);
+//                        return y;
                     }
                     else {
-                        URI uri = request.getURI();
+                        URI uri = saaSObject.getRequest().getURI();
                         HashMap<String, String> x = queryToMap(uri.getQuery());
 
                         int count = Integer.parseInt(x.get("_page")) + 1;
@@ -54,10 +67,10 @@ public class OktaEndpointGenerator implements EndpointGeneratorInterface {
                         String queryString = mapToQuery(x);
 
                         URI newURI = new URIBuilder().setScheme(uri.getScheme()).setHost(uri.getHost()).setPort(3000).setPath(uri.getPath()).setCustomQuery(queryString).build();
-                        request.setURI(newURI);
+                        saaSObject.getRequest().setURI(newURI);
 
-                        ArrayList<String> res = new ArrayList<String>();
-                        res.add(newURI.toString());
+                        ArrayList<SaaSObject> res = new ArrayList<SaaSObject>();
+                        res.add(saaSObject);
                         return res;
                     }
                 }
