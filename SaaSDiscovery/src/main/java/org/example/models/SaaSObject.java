@@ -1,5 +1,7 @@
 package org.example.models;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -61,8 +63,23 @@ public class SaaSObject {
         return this.response;
     }
 
-    public void setRequest(CloseableHttpResponse response){
+    public void setResponse(CloseableHttpResponse response){
         this.response = response;
     }
 
+
+    public String toString(){
+        ObjectMapper mapper = new ObjectMapper();
+        String requestStr = "";
+//        String responseStr = "";
+        try {
+            requestStr = mapper.writeValueAsString(this.request);
+//            responseStr = mapper.writeValueAsString(this.response);
+
+        } catch (JsonProcessingException e) {
+            System.out.println(e.getMessage());
+        }
+
+        return "{\"syncId\":" + syncId + "," + "\"accountName\":" + accountName + "," + "\"appName\":" + appName + "," + "\"request\":" + requestStr + "\"}";
+    }
 }

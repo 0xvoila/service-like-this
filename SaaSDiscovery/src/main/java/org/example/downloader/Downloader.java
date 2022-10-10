@@ -10,7 +10,9 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
+import org.apache.log4j.Logger;
 import org.example.Queue;
+import org.example.engine.Engine;
 import org.example.models.SaaSObject;
 
 import javax.naming.InitialContext;
@@ -28,6 +30,7 @@ import java.util.concurrent.TimeoutException;
 public class Downloader {
 
     CloseableHttpClient httpClient = HttpClients.createDefault();
+    Logger logger = Logger.getLogger(Downloader.class);
 
     public void submit(ArrayList<SaaSObject> urls ) throws InterruptedException {
 //        Submit Urls to launch in new thread
@@ -50,18 +53,22 @@ public class Downloader {
 
     public void downloadResource(SaaSObject saaSObject) throws IOException, NamingException, TimeoutException {
 
-        System.out.println("URL is " +saaSObject.getRequest().getURI());
         CloseableHttpResponse response = httpClient.execute(saaSObject.getRequest());
+        logger.info("downloaded response for the below saasobject");
+        logger.info(saaSObject.toString());
 
-        saaSObject.setRequest(response);
+        saaSObject.setResponse(response);
 
-//        System.out.println(EntityUtils.toString(response.getEntity()));
+        logger.info("publishing the below saas object to engine after downloading from internet");
+        logger.info(saaSObject.toString());
         publish(saaSObject);
     }
 
     public void publish(SaaSObject saaSObject) throws NamingException, IOException, TimeoutException {
 
         Queue.queue.add(saaSObject);
+        logger.info("added the below endpoint into the queue");
+        logger.info(saaSObject.toString());
 
     }
 }
