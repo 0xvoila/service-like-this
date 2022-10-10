@@ -1,29 +1,18 @@
 package org.example.downloader;
 
-import com.rabbitmq.client.ConnectionFactory;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpHeaders;
-import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
 
 import org.apache.log4j.Logger;
 import org.example.Queue;
-import org.example.engine.Engine;
-import org.example.models.SaaSObject;
+import org.example.models.RequestResponse;
 
-import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 
@@ -32,10 +21,10 @@ public class Downloader {
     CloseableHttpClient httpClient = HttpClients.createDefault();
     Logger logger = Logger.getLogger(Downloader.class);
 
-    public void submit(ArrayList<SaaSObject> urls ) throws InterruptedException {
+    public void submit(ArrayList<RequestResponse> urls ) throws InterruptedException {
 //        Submit Urls to launch in new thread
         ExecutorService executorService = Executors.newFixedThreadPool(10000);
-        for (SaaSObject url :
+        for (RequestResponse url :
                 urls) {
             executorService.submit(() -> {
                 try {
@@ -51,7 +40,7 @@ public class Downloader {
 //        executorService.awaitTermination(100, TimeUnit.DAYS);
     }
 
-    public void downloadResource(SaaSObject saaSObject) throws IOException, NamingException, TimeoutException {
+    public void downloadResource(RequestResponse saaSObject) throws IOException, NamingException, TimeoutException {
 
         CloseableHttpResponse response = httpClient.execute(saaSObject.getRequest());
         logger.info("downloaded response for the below saasobject");
@@ -64,7 +53,7 @@ public class Downloader {
         publish(saaSObject);
     }
 
-    public void publish(SaaSObject saaSObject) throws NamingException, IOException, TimeoutException {
+    public void publish(RequestResponse saaSObject) throws NamingException, IOException, TimeoutException {
 
         Queue.queue.add(saaSObject);
         logger.info("added the below endpoint into the queue");
