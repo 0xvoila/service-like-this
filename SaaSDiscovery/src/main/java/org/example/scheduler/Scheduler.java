@@ -39,15 +39,6 @@ public class Scheduler {
             urls.stream().map(x::push).forEach(y -> System.out.println(y));
         }
 
-
-//        Set<String> s = new HashSet<>();
-//
-//        if (x != null){
-//            s.addAll(x);
-//        }
-//        s.addAll(urls);
-//        urls = new Stack<>(s);
-//        accountUrls.put(accountName, urls);
     }
 
     public ArrayList<RequestResponse> getEndpoints(String accountName, int number){
