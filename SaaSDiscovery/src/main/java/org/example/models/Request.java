@@ -3,14 +3,23 @@ package org.example.models;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.HashMap;
+import java.util.UUID;
+
 
 public class Request {
+
+    String uuid;
 
     String url;
     HashMap<String, Object> queryParam = new HashMap<>();
     HashMap<String, Object> headers = new HashMap<>();
     String method = "GET";
     HashMap<String, Object> tags = new HashMap<>();
+
+    public Request(){
+        UUID uuid=UUID.randomUUID();
+        this.uuid = uuid.toString();
+    }
 
     public String getUrl() {
         return url;

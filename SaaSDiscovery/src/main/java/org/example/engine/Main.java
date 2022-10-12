@@ -20,21 +20,21 @@ import java.util.Arrays;
 import java.util.Properties;
 import java.util.concurrent.*;
 
-public class Engine {
+public class Main {
 
     EndpointGenerator endpointGenerator = new EndpointGenerator();
     Scheduler scheduler = new Scheduler();
     Downloader downloader = new Downloader();
 
-    Logger logger = Logger.getLogger(Engine.class);
+    Logger logger = Logger.getLogger(Main.class);
     ObjectMapper mapper = new ObjectMapper();
 
     public static void main( String[] args ) throws InterruptedException, IOException {
 
 //            kafkaConsumer();
 
-        Engine engine = new Engine();
-        engine.start();
+        Main main = new Main();
+        main.start();
     }
 
     public void start() throws InterruptedException {
@@ -148,6 +148,9 @@ public class Engine {
         }
     }
 
+    public void kafkaProducer(){
+
+    }
     public void kafkaConsumer(){
         String resourceName = "kafka.properties"; // could also be a constant
         ClassLoader loader = Thread.currentThread().getContextClassLoader();
