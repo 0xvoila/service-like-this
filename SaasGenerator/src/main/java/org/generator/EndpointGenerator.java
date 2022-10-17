@@ -1,4 +1,4 @@
-package org.example.generator;
+package org.generator;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -13,16 +13,13 @@ import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
 import org.apache.log4j.Logger;
-import org.example.models.RequestResponse;
+import org.generator.models.RequestResponse;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class EndpointGenerator {
     static Logger logger = Logger.getLogger(EndpointGenerator.class);
@@ -36,9 +33,9 @@ public class EndpointGenerator {
 
 
         KStream<String, String> endpointInputTopicStream = builder.stream("input_endpointgenerator", Consumed.with(stringSerde, stringSerde));
-        endpointInputTopicStream.map((key, value) -> {
+        endpointInputTopicStream.flatMapValues((value) -> {
             try {
-                return KeyValue.pair(key, mapper.writeValueAsString(getEndpoints(mapper.readValue(value, RequestResponse.class))));
+                return getEndpoints(mapper.readValue(value, RequestResponse.class));
             } catch (ClassNotFoundException e) {
                 throw new RuntimeException(e);
             } catch (JsonProcessingException e) {
