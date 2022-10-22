@@ -1,4 +1,4 @@
-package generator;
+package org.generator;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.generator.models.Request;

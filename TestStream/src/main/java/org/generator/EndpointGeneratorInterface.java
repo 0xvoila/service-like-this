@@ -1,4 +1,4 @@
-package generator;
+package org.generator;
 
 import org.generator.models.RequestResponse;
 

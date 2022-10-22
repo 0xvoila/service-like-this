@@ -1,4 +1,4 @@
-package org.downloader.models;
+package org.example.models;
 
 import java.util.HashMap;
 
@@ -11,8 +11,6 @@ public class RequestResponse {
     String resourceName;
 
     String url;
-
-
 
     public String getUrl() {
         return url;

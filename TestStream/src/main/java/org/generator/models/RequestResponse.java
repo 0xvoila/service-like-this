@@ -1,4 +1,4 @@
-package generator.models;
+package org.generator.models;
 
 import java.util.HashMap;
 

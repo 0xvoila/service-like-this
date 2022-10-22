@@ -1,4 +1,4 @@
-package org.generator.models;
+package org.example.models;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
