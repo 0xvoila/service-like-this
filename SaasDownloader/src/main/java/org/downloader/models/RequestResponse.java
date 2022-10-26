@@ -13,7 +13,6 @@ public class RequestResponse {
     String url;
 
 
-
     public String getUrl() {
         return url;
     }

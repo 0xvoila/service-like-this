@@ -1,36 +1,6 @@
-package org.downloader.models;
+package org.scheduler.models;
 
 public class Report {
-
-    String syncId;
-
-    String appName;
-
-    String resourceName;
-
-    public String getSyncId() {
-        return syncId;
-    }
-
-    public void setSyncId(String syncId) {
-        this.syncId = syncId;
-    }
-
-    public String getAppName() {
-        return appName;
-    }
-
-    public void setAppName(String appName) {
-        this.appName = appName;
-    }
-
-    public String getResourceName() {
-        return resourceName;
-    }
-
-    public void setResourceName(String resourceName) {
-        this.resourceName = resourceName;
-    }
 
     int totalRequest = 0 ;
     int totalFailure = 0;
@@ -84,9 +54,5 @@ public class Report {
 
     public void incrementReceived(){
         this.totalRequest = this.totalRequest + 1;
-    }
-
-    public void incrementDelayed(){
-        this.totalDelayed = this.totalDelayed + 1;
     }
 }

@@ -31,24 +31,24 @@ public class Main {
         final Serde<String> stringSerde = Serdes.String();
         final StreamsBuilder builder = new StreamsBuilder();
 
-        builder.table("first_topic",Materialized.<String, String, KeyValueStore<Bytes, byte[]>>as("first_topic_ktable").withKeySerde(stringSerde).withValueSerde(stringSerde));
-//        builder.stream("first_topic", Consumed.with(stringSerde,stringSerde)).map((key, value) -> {
+//        builder.table("first_topic",Materialized.<String, String, KeyValueStore<Bytes, byte[]>>as("first_topic_ktable").withKeySerde(stringSerde).withValueSerde(stringSerde));
+        builder.stream("first_topic", Consumed.with(stringSerde,stringSerde)).map((key, value) -> {
 
-//                    try {
-//                        return KeyValue.pair("12233",mapper.writeValueAsString(new RequestResponse("12233", "Google", "okta", null, null, null)
-//                                                                            ));
-//                    } catch (JsonProcessingException e) {
-//                        throw new RuntimeException(e);
-//                    }
-//                }
-//        ).to("input_endpointgenerator", Produced.with(stringSerde, stringSerde));
-//        KStream<String, String> endpointOutputTopicStream = builder.stream("output_endpointgenerator", Consumed.with(stringSerde, stringSerde));
-//        KStream<String, String> schedulerOutputTopicStream = builder.stream("output_scheduler", Consumed.with(stringSerde, stringSerde));
-//        KStream<String, String> downloaderOutputTopicStream = builder.stream("output_downloader", Consumed.with(stringSerde, stringSerde));
-//
-//        endpointOutputTopicStream.to("input_scheduler", Produced.with(stringSerde, stringSerde));
-//        schedulerOutputTopicStream.to("input_downloader", Produced.with(stringSerde, stringSerde));
-//        downloaderOutputTopicStream.to("input_endpointgenerator", Produced.with(stringSerde, stringSerde));
+                    try {
+                        return KeyValue.pair("12233",mapper.writeValueAsString(new RequestResponse("12233", "Google", "okta", null, null, null)
+                                                                            ));
+                    } catch (JsonProcessingException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+        ).to("input_endpointgenerator", Produced.with(stringSerde, stringSerde));
+        KStream<String, String> endpointOutputTopicStream = builder.stream("output_endpointgenerator", Consumed.with(stringSerde, stringSerde));
+        KStream<String, String> schedulerOutputTopicStream = builder.stream("output_scheduler", Consumed.with(stringSerde, stringSerde));
+        KStream<String, String> downloaderOutputTopicStream = builder.stream("output_downloader", Consumed.with(stringSerde, stringSerde));
+
+        endpointOutputTopicStream.to("input_scheduler", Produced.with(stringSerde, stringSerde));
+        schedulerOutputTopicStream.to("input_downloader", Produced.with(stringSerde, stringSerde));
+        downloaderOutputTopicStream.to("input_endpointgenerator", Produced.with(stringSerde, stringSerde));
 
         final KafkaStreams streams = new KafkaStreams(builder.build(),loadStreamConfig());
         final CountDownLatch latch = new CountDownLatch(10000000);

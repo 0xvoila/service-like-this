@@ -8,6 +8,14 @@ public class Request {
 
     String uuid;
 
+    public String getUuid() {
+        return uuid;
+    }
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
+    }
+
     String url;
     HashMap<String, Object> queryParam = new HashMap<>();
     HashMap<String, Object> headers = new HashMap<>();
