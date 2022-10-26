@@ -34,6 +34,17 @@ public class RequestResponse {
 
     HashMap<String, Object> tags;
 
+    public HashMap<String, Object> getTags() {
+        return tags;
+    }
+
+    public void setTag(String key, Object value){
+        this.tags.put(key, value);
+    }
+    public void setTags(HashMap<String, Object> tags) {
+        this.tags = tags;
+    }
+
     public RequestResponse(){
 
     }

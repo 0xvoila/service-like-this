@@ -3,8 +3,10 @@ package com.example.saasratelimiter;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.Bucket4j;
+import io.github.bucket4j.Refill;
 import org.springframework.boot.SpringApplication;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Duration;
@@ -20,16 +22,18 @@ class RateLimiterController {
     }
 
     @GetMapping("/register/{key}/{count}")
-    public void register(String key, int count){
-        Bandwidth bandwidth = Bandwidth.simple(count, Duration.ofMinutes(1));
-        Bucket bucket = Bucket4j.builder().addLimit(bandwidth).build();
+    public void register(@PathVariable String key, @PathVariable int count){
+        Refill refill = Refill.intervally(count, Duration.ofMinutes(1));
+        Bandwidth limit = Bandwidth.classic(count, refill);
+        Bucket bucket = Bucket4j.builder().addLimit(limit).build();
         bucketList.put(key, bucket);
     }
 
-    @GetMapping("/register/{key}")
-    public Boolean consume(String key){
-
-        return bucketList.get(key).tryConsume(1);
+    @GetMapping("/consume/{key}")
+    public Boolean consume(@PathVariable String key){
+        Boolean x = bucketList.get(key).tryConsume(1);
+        System.out.println(x);
+        return x;
     }
 
 

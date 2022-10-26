@@ -76,7 +76,7 @@ public class Downloader {
         Predicate<String, RequestResponse> nonDelayedRequests = (key, requestResponse) -> !hasReachedThreshold(requestResponse);
 
         requestStream.split()
-                .branch(delayedRequests, Branched.withConsumer(ks -> ks.mapValues((key,value) -> {logRequest(key + "/downloader/delayed/" + value.getRequest().getUuid(), value); return value;}).to("downloader-delayed", Produced.with(stringSerde, requestResponseSerde))))
+                .branch(delayedRequests, Branched.withConsumer(ks -> ks.mapValues((key,value) -> {logRequest(key + "/downloader/delayed/" + value.getRequest().getUuid(), value); value.setTag("_downloader_delayed", true); return value;}).to("downloader-delayed", Produced.with(stringSerde, requestResponseSerde))))
                 .branch(nonDelayedRequests, Branched.withConsumer(ks -> ks.to("downloader-execute", Produced.with(stringSerde, requestResponseSerde))));
 
         KStream<String, RequestResponse> delayedStream = builder.stream("downloader-delayed", Consumed.with(stringSerde, requestResponseSerde));
@@ -104,7 +104,7 @@ public class Downloader {
         KTable<String, Report> failureReport = builder.stream("downloader-failure", Consumed.with(stringSerde, requestResponseSerde)).groupByKey().aggregate(() -> {return new Report();}, (key, requestResponse, agg) -> {agg.incrementFailure(); return agg;}, Materialized.<String, Report, KeyValueStore<String, Report>>as("failure-request").with(stringSerde, reportSerde));
         KTable<String, Report> successReport = builder.stream("downloader-success", Consumed.with(stringSerde, requestResponseSerde)).groupByKey().aggregate(() -> {return new Report();}, (key, requestResponse, agg) -> {agg.incrementSuccess(); return agg;}, Materialized.<String, Report, KeyValueStore<String, Report>>as("success-request").with(stringSerde, reportSerde));
         KTable<String, Report> receivedReport = builder.stream("downloader-input", Consumed.with(stringSerde, requestResponseSerde)).groupByKey().aggregate(() -> {return new Report();}, (key, requestResponse, agg) -> {agg.incrementReceived(); return agg;}, Materialized.<String, Report, KeyValueStore<String, Report>>as("received-request").with(stringSerde, reportSerde));
-        KTable<String, Report> delayedReport = builder.stream("downloader-delayed", Consumed.with(stringSerde, requestResponseSerde)).groupByKey().aggregate(() -> {return new Report();}, (key, requestResponse, agg) -> {agg.incrementDelayed(); return agg;}, Materialized.<String, Report, KeyValueStore<String, Report>>as("received-request").with(stringSerde, reportSerde));
+        KTable<String, Report> delayedReport = builder.stream("downloader-delayed", Consumed.with(stringSerde, requestResponseSerde)).groupByKey().aggregate(() -> {return new Report();}, (key, requestResponse, agg) -> {if (!requestResponse.getTags().containsKey("_downloader_delayed")){ agg.incrementDelayed();} return agg;}, Materialized.<String, Report, KeyValueStore<String, Report>>as("received-request").with(stringSerde, reportSerde));
 
         KTable<String, Report> totalReport = receivedReport
                 .leftJoin(successReport , (received, success) -> {
@@ -281,7 +281,7 @@ public class Downloader {
                 throw new RuntimeException(e);
             }
             props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
-            props.put(StreamsConfig.APPLICATION_ID_CONFIG, "thisisanother");
+            props.put(StreamsConfig.APPLICATION_ID_CONFIG, "after another delayed");
             props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest");
             props.put(StreamsConfig.DEFAULT_DESERIALIZATION_EXCEPTION_HANDLER_CLASS_CONFIG,
                     LogAndContinueExceptionHandler.class);
