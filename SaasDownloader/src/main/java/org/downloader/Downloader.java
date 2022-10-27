@@ -269,7 +269,7 @@ public class Downloader {
                 throw new RuntimeException(e);
             }
             props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
-            props.put(StreamsConfig.APPLICATION_ID_CONFIG, "thisis");
+            props.put(StreamsConfig.APPLICATION_ID_CONFIG, "loolll");
             props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest");
             props.put(StreamsConfig.DEFAULT_DESERIALIZATION_EXCEPTION_HANDLER_CLASS_CONFIG,
                     LogAndContinueExceptionHandler.class);
