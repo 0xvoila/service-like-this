@@ -10,19 +10,12 @@ public class RequestResponse {
 
     String resourceName;
 
-    String url;
-
-
-    public String getUrl() {
-        return url;
-    }
-
-    public void setUrl(String url) {
-        this.url = url;
-    }
 
     Request request;
     Response response;
+
+    HashMap<String, Object> tags = new HashMap<>();
+
 
     public String getResourceName() {
         return resourceName;
@@ -31,8 +24,6 @@ public class RequestResponse {
     public void setResourceName(String resourceName) {
         this.resourceName = resourceName;
     }
-
-    HashMap<String, Object> tags;
 
     public HashMap<String, Object> getTags() {
         return tags;
@@ -70,12 +61,11 @@ public class RequestResponse {
         this.appName = appName;
     }
 
-    public RequestResponse(String syncId, String accountName, String appName, String resourceName, String url ){
+    public RequestResponse(String syncId, String accountName, String appName, String resourceName){
         this.syncId = syncId;
         this.accountName = accountName;
         this.appName = appName;
         this.resourceName = resourceName;
-        this.url = url;
     }
 
     public String getAccountName(){
