@@ -39,10 +39,10 @@ public class EndpointGenerator {
         Producer<String, String> producer = new KafkaProducer
                 <String, String>(loadStreamConfig());
 
-        for(int i = -10; i < 10; i++){
+        for(int i = 0; i < 1; i++){
             String url = "https://jsonplaceholder.typicode.com/todos/" + i;
-            producer.send(new ProducerRecord<String, String>("downloader-input",
-                    "0/okta/users", "{\"syncId\":\"4567\", \"appName\":\"okta\", \"accountName\":\"Google\", \"resourceName\":\"users\", \"request\":{\"url\":\"" + url + "\", \"uuid\": \"" + i + "\" }}"));
+            producer.send(new ProducerRecord<String, String>("generator-input",
+                    "990/okta/users", "{\"syncId\":\"4569\", \"appName\":\"okta\", \"accountName\":\"Google\", \"resourceName\":\"users\"}"));
         }
 
         System.out.println("Message sent successfully");

@@ -1,12 +1,23 @@
 package org.generator.models;
 
 import java.util.HashMap;
+import java.util.Objects;
 import java.util.UUID;
+import java.security.MessageDigest;
+
 
 
 public class Request {
 
     String uuid;
+
+    public String getUuid() {
+        return uuid;
+    }
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
+    }
 
     String url;
     HashMap<String, Object> queryParam = new HashMap<>();
@@ -25,6 +36,7 @@ public class Request {
 
     public void setUrl(String url) {
         this.url = url;
+        this.uuid = Integer.toString(Objects.hashCode(url + getQueryParam().toString() + getHeaders().toString()));
     }
 
     public HashMap<String, Object> getQueryParam() {
@@ -33,6 +45,7 @@ public class Request {
 
     public void setQueryParam(HashMap<String, Object> queryParam) {
         this.queryParam = queryParam;
+        this.uuid = Integer.toString(Objects.hashCode(url + getQueryParam().toString() + getHeaders().toString()));
     }
 
     public HashMap<String, Object> getHeaders() {
@@ -41,6 +54,7 @@ public class Request {
 
     public void setHeaders(HashMap<String, Object> headers) {
         this.headers = headers;
+        this.uuid = Integer.toString(Objects.hashCode(url + getQueryParam().toString() + getHeaders().toString()));
     }
 
     public String getMethod() {
@@ -49,6 +63,7 @@ public class Request {
 
     public void setMethod(String method) {
         this.method = method;
+        this.uuid = Integer.toString(Objects.hashCode(url + getQueryParam().toString() + getHeaders().toString()));
     }
 
     public HashMap<String, Object> getTags() {
@@ -57,10 +72,12 @@ public class Request {
 
     public void setTags(HashMap<String, Object> tags) {
         this.tags = tags;
+        this.uuid = Integer.toString(Objects.hashCode(url + getQueryParam().toString() + getHeaders().toString()));
     }
 
     public void setTags(String key, Object value){
         this.tags.put(key, value);
+        this.uuid = Integer.toString(Objects.hashCode(url + getQueryParam().toString() + getHeaders().toString()));
     }
 
 }

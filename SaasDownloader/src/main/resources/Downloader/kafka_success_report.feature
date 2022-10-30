@@ -1,5 +1,6 @@
-Feature: Validate the kafka success report
-  Validate if the kafka success report provides the correct number or not
+Feature: Validate the kafka report
+  Validate if kafka report is correct
+
 
   Scenario Outline: Metric measurement of success and failure rate
     Given <no_of_success_requests_sent> requests are 200Ok request
@@ -12,9 +13,9 @@ Feature: Validate the kafka success report
     Then Report should show <no_of_success_requests_sent> plus <no_of_failed_requests_sent> total received request and <no_of_failure_requests> have failed
     Examples:
       | no_of_success_requests_sent | no_of_successful_request | topic_name       | wait_minutes | limit | resource_key   | no_of_failure_requests | no_of_failed_requests_sent |
-      | 5                           | 5                        | downloader-input | 1            | 100   | 201/okta/users | 5                      | 5                          |
-      | 20                          | 20                       | downloader-input | 1            | 100   | 202/okta/users | 20                     | 20                         |
-      | 10                          | 10                       | downloader-input | 1            | 100   | 203/okta/users | 10                     | 10                         |
+      | 100                         | 100                      | downloader-input | 1            | 1000  | 009/okta/users | 5                      | 5                          |
+      | 200                         | 200                      | downloader-input | 1            | 1000  | 002/okta/users | 20                     | 20                         |
+      | 1000                        | 1000                     | downloader-input | 1            | 1000  | 003/okta/users | 10                     | 10                         |
 
 
 

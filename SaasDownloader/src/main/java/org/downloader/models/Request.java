@@ -33,6 +33,7 @@ public class Request {
 
     public void setUrl(String url) {
         this.url = url;
+        this.uuid = Integer.toString(this.url.hashCode());
     }
 
     public HashMap<String, Object> getQueryParam() {

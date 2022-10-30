@@ -50,6 +50,7 @@ public class OktaEndpointGenerator  implements EndpointGeneratorInterface {
                         request.setUrl(x);
 
                         saaSObject.setRequest(request);
+                        saaSObject.setResponse(null);
                         ArrayList<RequestResponse> aa = new ArrayList<>();
                         aa.add(saaSObject);
                         return aa;

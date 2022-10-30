@@ -572,9 +572,9 @@ jQuery.cookie = function(name, value, options) {
     <body>
         <div id="container">
             <div id="header">
-                <div class="time" xmlns="">7 m 2 s</div>
+                <div class="time" xmlns="">3 m 2 s</div>
                 <h1>
-                    Feature: kafka_success_report: <strong><span class="total" xmlns="http://www.w3.org/1999/xhtml">4 total, </span><span class="passed">4 passed</span></strong>
+                    Feature: kafka_success_report: <strong><span class="total" xmlns="http://www.w3.org/1999/xhtml">24 total, </span><span class="passed">24 passed</span></strong>
                 </h1>
                 <div id="treecontrol">
                     <ul>
@@ -593,37 +593,57 @@ jQuery.cookie = function(name, value, options) {
                 <ul id="tree">
                     <li xmlns="" class="level top open">
                         <span><em class="time">
-                                <div class="time">7 m 2 s</div>
+                                <div class="time">3 m 2 s</div>
                             </em>Cucumber</span>
                         <ul>
                             <li class="level suite open">
                                 <span><em class="time">
-                                        <div class="time">7 m 2 s</div>
+                                        <div class="time">3 m 2 s</div>
                                     </em>Validate the kafka success report</span>
                                 <ul>
                                     <li class="level suite open">
                                         <span><em class="time">
-                                                <div class="time">7 m 2 s</div>
-                                            </em>All requests are success</span>
+                                                <div class="time">3 m 2 s</div>
+                                            </em>Metric measurement of success and failure rate</span>
                                         <ul>
                                             <li class="level suite open">
                                                 <span><em class="time">
-                                                        <div class="time">7 m 2 s</div>
+                                                        <div class="time">3 m 2 s</div>
                                                     </em>Examples</span>
                                                 <ul>
                                                     <li class="level suite open">
                                                         <span><em class="time">
-                                                                <div class="time">7 m 2 s</div>
+                                                                <div class="time">1 m 2 s</div>
                                                             </em>Example #1</span>
                                                         <ul>
                                                             <li class="level test">
                                                                 <span><em class="time">
-                                                                        <div class="time">233 ms</div>
-                                                                    </em><em class="status">passed</em>50 successful requests</span>
+                                                                        <div class="time">569 ms</div>
+                                                                    </em><em class="status">passed</em>5 requests are 200Ok request</span>
                                                             </li>
                                                             <li class="level test">
                                                                 <span><em class="time">
-                                                                        <div class="time">638 ms</div>
+                                                                        <div class="time">1 ms</div>
+                                                                    </em><em class="status">passed</em>5 requests are 400 request</span>
+                                                            </li>
+                                                            <li class="level test">
+                                                                <span><em class="time">
+                                                                        <div class="time">2 ms</div>
+                                                                    </em><em class="status">passed</em>Key "201/okta/users" for which we want to send requests</span>
+                                                                <ul>
+                                                                    <li class="text">
+                                                                        <span class="stdout">Key is 201/okta/users<br/></span>
+                                                                    </li>
+                                                                </ul>
+                                                            </li>
+                                                            <li class="level test">
+                                                                <span><em class="time">
+                                                                        <div class="time">41 ms</div>
+                                                                    </em><em class="status">passed</em>Having rate limit of 100 per minute</span>
+                                                            </li>
+                                                            <li class="level test">
+                                                                <span><em class="time">
+                                                                        <div class="time">640 ms</div>
                                                                     </em><em class="status">passed</em>Added into the kafka "downloader-input" topic</span>
                                                                 <ul>
                                                                     <li class="text">
@@ -636,18 +656,132 @@ jQuery.cookie = function(name, value, options) {
                                                             </li>
                                                             <li class="level test">
                                                                 <span><em class="time">
-                                                                        <div class="time">7 m 0 s</div>
-                                                                    </em><em class="status">passed</em>wait for 7 minutes to download execute the request</span>
+                                                                        <div class="time">1 m 0 s</div>
+                                                                    </em><em class="status">passed</em>wait for 1 minutes to download execute the request</span>
                                                             </li>
                                                             <li class="level test">
                                                                 <span><em class="time">
-                                                                        <div class="time">627 ms</div>
-                                                                    </em><em class="status">passed</em>Report should show 50 total received request and 50 successful requests</span>
+                                                                        <div class="time">486 ms</div>
+                                                                    </em><em class="status">passed</em>Report should show 5 plus 5 total received request and 5 successful requests</span>
+                                                            </li>
+                                                            <li class="level test">
+                                                                <span><em class="time">
+                                                                        <div class="time">6 ms</div>
+                                                                    </em><em class="status">passed</em>Report should show 5 plus 5 total received request and 5 have failed</span>
+                                                            </li>
+                                                        </ul>
+                                                    </li>
+                                                    <li class="level suite open">
+                                                        <span><em class="time">
+                                                                <div class="time">1 m 0 s</div>
+                                                            </em>Example #2</span>
+                                                        <ul>
+                                                            <li class="level test">
+                                                                <span><em class="time">
+                                                                        <div class="time">0 ms</div>
+                                                                    </em><em class="status">passed</em>20 requests are 200Ok request</span>
+                                                            </li>
+                                                            <li class="level test">
+                                                                <span><em class="time">
+                                                                        <div class="time">0 ms</div>
+                                                                    </em><em class="status">passed</em>20 requests are 400 request</span>
+                                                            </li>
+                                                            <li class="level test">
+                                                                <span><em class="time">
+                                                                        <div class="time">1 ms</div>
+                                                                    </em><em class="status">passed</em>Key "202/okta/users" for which we want to send requests</span>
                                                                 <ul>
                                                                     <li class="text">
-                                                                        <span class="stdout">Total request received : 50 and received responses are : 50<br/>Total request received : 50 and received responses are : 50<br/></span>
+                                                                        <span class="stdout">Key is 202/okta/users<br/></span>
                                                                     </li>
                                                                 </ul>
+                                                            </li>
+                                                            <li class="level test">
+                                                                <span><em class="time">
+                                                                        <div class="time">13 ms</div>
+                                                                    </em><em class="status">passed</em>Having rate limit of 100 per minute</span>
+                                                            </li>
+                                                            <li class="level test">
+                                                                <span><em class="time">
+                                                                        <div class="time">58 ms</div>
+                                                                    </em><em class="status">passed</em>Added into the kafka "downloader-input" topic</span>
+                                                                <ul>
+                                                                    <li class="text">
+                                                                        <span class="stdout">Message sent successfully<br/></span>
+                                                                    </li>
+                                                                </ul>
+                                                            </li>
+                                                            <li class="level test">
+                                                                <span><em class="time">
+                                                                        <div class="time">1 m 0 s</div>
+                                                                    </em><em class="status">passed</em>wait for 1 minutes to download execute the request</span>
+                                                            </li>
+                                                            <li class="level test">
+                                                                <span><em class="time">
+                                                                        <div class="time">17 ms</div>
+                                                                    </em><em class="status">passed</em>Report should show 20 plus 20 total received request and 20 successful requests</span>
+                                                            </li>
+                                                            <li class="level test">
+                                                                <span><em class="time">
+                                                                        <div class="time">8 ms</div>
+                                                                    </em><em class="status">passed</em>Report should show 20 plus 20 total received request and 20 have failed</span>
+                                                            </li>
+                                                        </ul>
+                                                    </li>
+                                                    <li class="level suite open">
+                                                        <span><em class="time">
+                                                                <div class="time">1 m 0 s</div>
+                                                            </em>Example #3</span>
+                                                        <ul>
+                                                            <li class="level test">
+                                                                <span><em class="time">
+                                                                        <div class="time">0 ms</div>
+                                                                    </em><em class="status">passed</em>10 requests are 200Ok request</span>
+                                                            </li>
+                                                            <li class="level test">
+                                                                <span><em class="time">
+                                                                        <div class="time">1 ms</div>
+                                                                    </em><em class="status">passed</em>10 requests are 400 request</span>
+                                                            </li>
+                                                            <li class="level test">
+                                                                <span><em class="time">
+                                                                        <div class="time">0 ms</div>
+                                                                    </em><em class="status">passed</em>Key "203/okta/users" for which we want to send requests</span>
+                                                                <ul>
+                                                                    <li class="text">
+                                                                        <span class="stdout">Key is 203/okta/users<br/></span>
+                                                                    </li>
+                                                                </ul>
+                                                            </li>
+                                                            <li class="level test">
+                                                                <span><em class="time">
+                                                                        <div class="time">16 ms</div>
+                                                                    </em><em class="status">passed</em>Having rate limit of 100 per minute</span>
+                                                            </li>
+                                                            <li class="level test">
+                                                                <span><em class="time">
+                                                                        <div class="time">45 ms</div>
+                                                                    </em><em class="status">passed</em>Added into the kafka "downloader-input" topic</span>
+                                                                <ul>
+                                                                    <li class="text">
+                                                                        <span class="stdout">Message sent successfully<br/></span>
+                                                                    </li>
+                                                                </ul>
+                                                            </li>
+                                                            <li class="level test">
+                                                                <span><em class="time">
+                                                                        <div class="time">1 m 0 s</div>
+                                                                    </em><em class="status">passed</em>wait for 1 minutes to download execute the request</span>
+                                                            </li>
+                                                            <li class="level test">
+                                                                <span><em class="time">
+                                                                        <div class="time">9 ms</div>
+                                                                    </em><em class="status">passed</em>Report should show 10 plus 10 total received request and 10 successful requests</span>
+                                                            </li>
+                                                            <li class="level test">
+                                                                <span><em class="time">
+                                                                        <div class="time">5 ms</div>
+                                                                    </em><em class="status">passed</em>Report should show 10 plus 10 total received request and 10 have failed</span>
                                                             </li>
                                                         </ul>
                                                     </li>
@@ -663,7 +797,7 @@ jQuery.cookie = function(name, value, options) {
             </div>
         </div>
         <div id="footer">
-            <p>Generated by IntelliJ IDEA on 27/10/22, 5:45 PM</p>
+            <p>Generated by IntelliJ IDEA on 28/10/22, 1:35 AM</p>
         </div>
     </body>
 </html>
