@@ -89,6 +89,8 @@ public class Downloader {
                 .branch(successRequests, Branched.withConsumer(ks -> ks.mapValues((key,value) -> {logRequest(key + "/downloader/success/" + value.getRequest().getUuid(), value); return value;}).to(Constants.SUCCESS_KAFKA_QUEUE, Produced.with(stringSerde, requestResponseSerde))))
                 .branch(failureRequests, Branched.withConsumer(ks -> ks.mapValues((key,value) -> {logRequest(key + "/downloader/failure/" + value.getRequest().getUuid(), value); return value;}).to(Constants.FAILURE_KAFKA_QUEUE, Produced.with(stringSerde, requestResponseSerde))));
 
+        builder.stream(Constants.SUCCESS_KAFKA_QUEUE, Consumed.with(stringSerde, requestResponseSerde)).to(Constants.SUCCESS_KAFKA_GENERATOR_QUEUE, Produced.with(stringSerde, requestResponseSerde));
+
         KTable<String, Report> failureReport = builder.stream(Constants.FAILURE_KAFKA_QUEUE, Consumed.with(stringSerde, requestResponseSerde)).groupByKey().aggregate(() -> {return new Report();}, (key, requestResponse, agg) -> {agg.incrementFailure(); return agg;}, Materialized.<String, Report, KeyValueStore<String, Report>>as("failure-request").with(stringSerde, reportSerde));
         KTable<String, Report> successReport = builder.stream(Constants.SUCCESS_KAFKA_QUEUE, Consumed.with(stringSerde, requestResponseSerde)).groupByKey().aggregate(() -> {return new Report();}, (key, requestResponse, agg) -> {agg.incrementSuccess(); return agg;}, Materialized.<String, Report, KeyValueStore<String, Report>>as("success-request").with(stringSerde, reportSerde));
         KTable<String, Report> receivedReport = builder.stream(Constants.INPUT_KAFKA_QUEUE, Consumed.with(stringSerde, requestResponseSerde)).groupByKey().aggregate(() -> {return new Report();}, (key, requestResponse, agg) -> {agg.incrementReceived(); return agg;}, Materialized.<String, Report, KeyValueStore<String, Report>>as("received-request").with(stringSerde, reportSerde));
@@ -269,7 +271,7 @@ public class Downloader {
                 throw new RuntimeException(e);
             }
             props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
-            props.put(StreamsConfig.APPLICATION_ID_CONFIG, "llll");
+            props.put(StreamsConfig.APPLICATION_ID_CONFIG, "downloader_127");
             props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest");
             props.put(StreamsConfig.DEFAULT_DESERIALIZATION_EXCEPTION_HANDLER_CLASS_CONFIG,
                     LogAndContinueExceptionHandler.class);

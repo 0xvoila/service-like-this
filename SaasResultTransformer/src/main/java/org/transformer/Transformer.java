@@ -1,4 +1,4 @@
-package org.generator;
+package org.transformer;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,12 +16,10 @@ import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.errors.LogAndContinueExceptionHandler;
 import org.apache.kafka.streams.kstream.*;
-import org.apache.kafka.streams.state.KeyValueStore;
 import org.apache.log4j.Logger;
-import org.generator.contants.Constants;
-import org.generator.models.Report;
-import org.generator.models.RequestResponse;
-import org.generator.serde.RequestResponseSerde;
+import org.transformer.contants.Constants;
+import org.transformer.models.*;
+import org.transformer.serde.RequestResponseSerde;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,13 +27,13 @@ import java.util.ArrayList;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 
-public class EndpointGenerator {
+public class Transformer {
     static CloseableHttpClient httpClient = HttpClients.createDefault();
 
 
     static KvClient kvClient = EtcdClient.forEndpoint(Constants.ETC_HOST, Constants.ETC_PORT).withPlainText().build().getKvClient();
 
-    static Logger logger = Logger.getLogger(EndpointGenerator.class);
+    static Logger logger = Logger.getLogger(Transformer.class);
 
     static ObjectMapper mapper = new ObjectMapper();
 
@@ -43,44 +41,34 @@ public class EndpointGenerator {
 
         final Serde<String> stringSerde = Serdes.String();
         final Serde<RequestResponse> requestResponseSerde = RequestResponseSerde.getRequestResponse();
-        final Serde<Report> reportSerde = RequestResponseSerde.getReport();
+        final Serde<User> userSerde = RequestResponseSerde.getUser();
+        final Serde<Application> applicationSerde = RequestResponseSerde.getApplication();
+        final Serde<Usage> usageSerde = RequestResponseSerde.getUsage();
         final StreamsBuilder builder = new StreamsBuilder();
-
 
         KStream<String, RequestResponse> requestStream = builder.stream(Constants.INPUT_KAFKA_QUEUE, Consumed.with(stringSerde, requestResponseSerde));
 
-        Predicate<String, RequestResponse> failureRequests = (key, requestResponse) -> {return isDuplicate(key, requestResponse);};
-        Predicate<String, RequestResponse> successRequests = (key, requestResponse) -> {return !isDuplicate(key, requestResponse);};
 
-        KStream<String, RequestResponse> requestStreamRekey = requestStream.mapValues((key, requestResponse) -> getEndpoints(requestResponse))
-                .flatMapValues(requestResponseList -> requestResponseList)
-                .selectKey((key, value) -> {if (value.getRequest() == null && value.getResponse() == null ) { return value.getResourceName() + "/" + value.getAppName() + "/" + value.getSyncId();} return key;});
+        KStream<String, Object> x = requestStream.mapValues((key, requestResponse) -> getResources(requestResponse))
+                .flatMapValues(requestResponseList -> requestResponseList);
 
-        requestStreamRekey.split()
-                        .branch(failureRequests, Branched.withConsumer(ks -> ks.to(Constants.DUPLICATE_KAFKA_QUEUE, Produced.with(stringSerde, requestResponseSerde))))
-                        .branch(successRequests, Branched.withConsumer(ks -> ks.to(Constants.SUCCESS_KAFKA_QUEUE, Produced.with(stringSerde, requestResponseSerde))));
-        KStream<String, RequestResponse> successStream = builder.stream(Constants.SUCCESS_KAFKA_QUEUE,Consumed.with(stringSerde, requestResponseSerde));
-        successStream.filter(successRequests)
-                .mapValues((key, value) -> {logRequest(key + "/generator/" + value.getRequest().getUuid(), value); return value;})
-                .to(Constants.OUTPUT_KAFKA_QUEUE,Produced.with(stringSerde,requestResponseSerde));
+        Predicate<String, Object> userRequests = (key, value) -> isUserList(value);
+        Predicate<String, Object> appRequests = (key, value) -> isAppList(value);
+        Predicate<String, Object> usageRequests = (key, value) -> isUsageList(value);
+        x.split()
+                .branch(userRequests, Branched.withConsumer(ks -> ks.mapValues((key, value) -> User.class.cast(value))
+                        .selectKey((key, user) -> { return user.getResourceName() + "/" + user.getAppName() + "/" + user.getSyncId();})
+                        .mapValues((key,user) -> {logRequest(key + "/transformer/users/" + user.getUserId(), user); return user;})
+                        .to(Constants.OUTPUT_USER_KAFKA_QUEUE, Produced.with(stringSerde, userSerde))))
+                .branch(appRequests, Branched.withConsumer(ks -> ks.mapValues((key, value) -> Application.class.cast(value))
+                        .selectKey((key, application) -> { return application.getResourceName() + "/" + application.getAppName() + "/" + application.getSyncId();})
+                        .mapValues((key,application) -> {logRequest(key + "/transformer/application/" + application.getUserId(), application); return application;})
+                        .to(Constants.OUTPUT_APPLICATION_KAFKA_QUEUE, Produced.with(stringSerde, applicationSerde))))
+                .branch(usageRequests, Branched.withConsumer(ks -> ks.mapValues((key, value) -> Usage.class.cast(value))
+                        .selectKey((key, usage) -> { return usage.getResourceName() + "/" + usage.getAppName() + "/" + usage.getSyncId();})
+                        .mapValues((key,usage) -> {logRequest(key + "/transformer/usage/" + usage.getUserId(), usage); return usage;})
+                        .to(Constants.OUTPUT_USAGE_KAFKA_QUEUE, Produced.with(stringSerde, usageSerde))));
 
-        KStream<String, RequestResponse> failureStream = builder.stream(Constants.DUPLICATE_KAFKA_QUEUE,Consumed.with(stringSerde, requestResponseSerde));
-        KTable<String, Report> successReport = builder.stream(Constants.SUCCESS_KAFKA_QUEUE,Consumed.with(stringSerde, requestResponseSerde)).groupByKey().aggregate(() -> {return new Report();}, (key, requestResponse, agg) -> {agg.incrementSuccess(); return agg;}, Materialized.<String, Report, KeyValueStore<String, Report>>as("success-request").with(stringSerde, reportSerde));
-        KTable<String, Report> failureReport = builder.stream(Constants.DUPLICATE_KAFKA_QUEUE,Consumed.with(stringSerde, requestResponseSerde)).groupByKey().aggregate(() -> {return new Report();}, (key, requestResponse, agg) -> {agg.incrementFailure(); return agg;}, Materialized.<String, Report, KeyValueStore<String, Report>>as("duplicate-request").with(stringSerde, reportSerde));
-
-        successReport.leftJoin(failureReport, (success, duplicate) -> {
-            if (success != null && duplicate != null){
-                 success.setTotalFailure(duplicate.getTotalFailure());
-            }
-            else if ( success != null && duplicate == null){
-                return success;
-            }
-            return success;
-        });
-
-        successReport.toStream().foreach((key, value) -> {
-            saveReport(key + "/generator/report", value);
-        });
 
         final KafkaStreams streams = new KafkaStreams(builder.build(), loadStreamConfig());
         final CountDownLatch latch = new CountDownLatch(10000000);
@@ -92,23 +80,30 @@ public class EndpointGenerator {
             System.exit(1);
         }
     }
-    private static ArrayList<RequestResponse> getEndpoints(RequestResponse saasObject) {
+    private static ArrayList<? extends Object> getResources(RequestResponse saasObject) {
 
-        ArrayList<RequestResponse> saaSObjectsList = new ArrayList<>();
+        ArrayList<Object> saaSObjectsList = new ArrayList<>();
 
         try{
 //            Properties properties = new Properties();
-//            properties.setProperty("okta","org.example.generator.OktaEndpointGenerator");
+//            properties.setProperty("okta","org.example.generator.OktaTransformerUser");
 
-            RangeResponse rangeResponse = getKey("/generator/" + saasObject.getResourceName() + "/" + saasObject.getAppName());
+            RangeResponse rangeResponse = getKey( "/transformer/" + saasObject.getAppName() + "/" + saasObject.getResourceName());
             if (rangeResponse != null && rangeResponse.getCount() == 0){
-                rangeResponse = getKey("/generator/" + saasObject.getAppName());
+                rangeResponse = getKey("/transformer/" + saasObject.getAppName());
             }
 
-            Class<?>  cl = Class.forName(rangeResponse.getKvs(0).getValue().toStringUtf8());
+            Class<?>  cl = null;
+            if (rangeResponse != null && rangeResponse.getCount() == 0){
+                cl = Class.forName("org.transformer.TransformerInterface");
+            }
+            else {
+                cl = Class.forName(rangeResponse.getKvs(0).getValue().toStringUtf8());
+            }
+
             logger.info(mapper.writeValueAsString(saasObject));
-            EndpointGeneratorInterface c = (EndpointGeneratorInterface) cl.newInstance();
-            saaSObjectsList = c.getNextEndpoints(saasObject);
+            TransformerInterface c = (TransformerInterface) cl.newInstance();
+            saaSObjectsList = (ArrayList<Object>) c.transform(saasObject);
 
             saaSObjectsList.stream().forEach(x -> {
                 try {
@@ -125,6 +120,19 @@ public class EndpointGenerator {
 
         return saaSObjectsList;
     }
+
+    public static Boolean isUserList(Object x){
+        return x instanceof User;
+    }
+
+    public static Boolean isAppList(Object x){
+        return x instanceof Application;
+    }
+
+    public static Boolean isUsageList(Object x){
+        return x instanceof Usage;
+    }
+
 
     public static Boolean isDuplicate(String key, RequestResponse requestResponse){
 
@@ -158,10 +166,10 @@ public class EndpointGenerator {
         kvClient.delete(ByteString.copyFromUtf8((key))).sync();
     }
 
-    public static void logRequest(String key, RequestResponse requestResponse)  {
+    public static void logRequest(String key, Object object)  {
         try{
 
-            kvClient.put(ByteString.copyFromUtf8((key)), ByteString.copyFromUtf8(mapper.writeValueAsString(requestResponse))).sync();
+            kvClient.put(ByteString.copyFromUtf8((key)), ByteString.copyFromUtf8(mapper.writeValueAsString(object))).sync();
         }
         catch(Exception e){
             System.out.println(e.getMessage());
@@ -180,7 +188,7 @@ public class EndpointGenerator {
                 throw new RuntimeException(e);
             }
             props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
-            props.put(StreamsConfig.APPLICATION_ID_CONFIG, "endpoint_generator12");
+            props.put(StreamsConfig.APPLICATION_ID_CONFIG, "result_transformer_20");
             props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest");
             props.put(StreamsConfig.DEFAULT_DESERIALIZATION_EXCEPTION_HANDLER_CLASS_CONFIG,
                     LogAndContinueExceptionHandler.class);

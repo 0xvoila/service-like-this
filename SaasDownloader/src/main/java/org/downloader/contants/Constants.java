@@ -8,7 +8,9 @@ public class Constants {
     public static final String EXECUTE_KAFKA_QUEUE = "downloader-execute";
     public static final String DELAY_KAFKA_QUEUE = "downloader-delayed";
 
-    public static final String SUCCESS_KAFKA_QUEUE = "generator-input";
+    public static final String SUCCESS_KAFKA_GENERATOR_QUEUE = "generator-input";
+
+    public static final String SUCCESS_KAFKA_QUEUE = "transformer-input";
 
     public static final String FAILURE_KAFKA_QUEUE = "downloader-failure";
 
