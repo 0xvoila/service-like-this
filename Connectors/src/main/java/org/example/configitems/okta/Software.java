@@ -1,0 +1,35 @@
+package org.example.configitems.okta;
+
+import org.example.connectors.okta.Application;
+import org.example.connectors.okta.User;
+
+public class Software extends config_items.Software {
+
+    String id;
+    String userName;
+    String appId;
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(User user) {
+        this.userName = user.getUserName();
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(Application application) {
+        this.id = appId;
+    }
+
+    public String getAppId() {
+        return appId;
+    }
+
+    public void setAppId(String appId) {
+        this.appId = appId;
+    }
+}
