@@ -87,11 +87,11 @@ public class App
             }
             DiscoveryObject discoveryObject = objectMapper.readValue(s, DiscoveryObject.class);
             BaseConnector connector = discoveryObject.getConnectorClass();
-            System.out.println(connector.getClass().getName());
+//            System.out.println(connector.getClass().getName());
             Class<?> t = connectorConfigItemTable.get(discoveryObject.getConnectorName(), connector.getClass());
 
             if ( t != null){
-                System.out.println(t.getName());
+//                System.out.println(t.getName());
                 List<Method> setterMethods = getAllSetters(t);
 
                 Object o = t.newInstance();
@@ -100,6 +100,8 @@ public class App
                     Class<?> [] classParameterList = method.getParameterTypes();
                     method.invoke(o,classList.get(classParameterList[0].getName()));
                 }
+
+                System.out.println(objectMapper.writeValueAsString(o));
             }
         }
     }
@@ -168,8 +170,8 @@ public class App
             connectorConfigItemTable.put(connector.entrySet().iterator().next().getKey(), findDeepestLevel(getAllSetters(softwareClass), connector.entrySet().iterator().next().getKey()) , softwareClass);
         }
 
-        System.out.println(connectorConfigItemTable.get("org.example.connectors.okta", org.example.connectors.okta.User.class));
-        System.out.println(connectorConfigItemTable.get("org.example.connectors.onelogin", org.example.connectors.onelogin.ServicePrincipal.class));
+//        System.out.println(connectorConfigItemTable.get("org.example.connectors.okta", org.example.connectors.okta.User.class));
+//        System.out.println(connectorConfigItemTable.get("org.example.connectors.onelogin", org.example.connectors.onelogin.ServicePrincipal.class));
 
     }
 
@@ -276,9 +278,9 @@ public class App
             Set<Constructor> constructorSet = getConstructorSetByClass(step);
             Class<?> parentClass = getParentClass(constructorSet);
             if(parentClass != null){
-                System.out.println( step.getName() + " ----> " + parentClass.getName());
+//                System.out.println( step.getName() + " ----> " + parentClass.getName());
                 DAG.put(parentClass, step);
-                System.out.println(DAG);
+//                System.out.println(DAG);
             }
             else{
                 rootNode = step;

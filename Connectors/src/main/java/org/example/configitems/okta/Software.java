@@ -1,12 +1,25 @@
 package org.example.configitems.okta;
 
+import org.example.App;
 import org.example.connectors.okta.Application;
+import org.example.connectors.okta.ServicePrincipal;
 import org.example.connectors.okta.User;
 
 public class Software extends config_items.Software {
 
     String id;
     String userName;
+
+    @Override
+    public String getAppId() {
+        return appId;
+    }
+
+
+    public void setAppId(Application application) {
+        this.appId = application.getAppName();
+    }
+
     String appId;
 
 
