@@ -1,12 +1,14 @@
 package org.example;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.javafaker.Faker;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Table;
-import com.google.common.graph.GraphBuilder;
-import com.google.common.graph.MutableGraph;
-import com.google.common.graph.Traverser;
 import config_items.BaseConfigItem;
 import config_items.Software;
 import org.checkerframework.checker.units.qual.A;
@@ -15,20 +17,15 @@ import org.example.connectors.okta.Application;
 import org.example.connectors.okta.ServicePrincipal;
 import org.example.connectors.okta.User;
 import org.reflections.Reflections;
-import org.reflections.Store;
-import org.reflections.scanners.MethodParameterNamesScanner;
-import org.reflections.scanners.MethodParameterScanner;
 import static org.reflections.ReflectionUtils.*;
 import static org.reflections.scanners.Scanners.*;
-
-import org.reflections.scanners.Scanners;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 import org.reflections.util.FilterBuilder;
-import org.reflections.util.QueryFunction;
 
-import java.lang.reflect.Array;
+import java.io.IOException;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 
@@ -60,17 +57,82 @@ public class App
         }
     }
 
-    Table<String, Object, Object> connectorConfigItemTable = HashBasedTable.create();
+    Table<String, Class<?>, Class<?>> connectorConfigItemTable = HashBasedTable.create();
     HashMap<String, Node> dagMap = new HashMap<>();
 
 
 
-    public static void main( String[] args )  {
+    public static void main( String[] args ) throws IOException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException, ClassNotFoundException {
 
         App app = new App();
         app.scanner();
+        app.consume();
     }
 
+    public void consume() throws IOException, InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException, ClassNotFoundException {
+
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        while(true){
+            String s = getFromKafka();
+            JsonNode jNode = objectMapper.readTree(s);
+
+            ArrayList<JsonNode> classNode =  convertToClass(jNode, new ArrayList<JsonNode>());
+            HashMap<String, Object> classList = new HashMap<String, Object>();
+
+            for (JsonNode node: classNode) {
+
+               Object o = objectMapper.readValue(node.toString(), Class.forName(node.get("type").asText()));
+               classList.put(o.getClass().getName(), o);
+            }
+            DiscoveryObject discoveryObject = objectMapper.readValue(s, DiscoveryObject.class);
+            BaseConnector connector = discoveryObject.getConnectorClass();
+            System.out.println(connector.getClass().getName());
+            Class<?> t = connectorConfigItemTable.get(discoveryObject.getConnectorName(), connector.getClass());
+
+            if ( t != null){
+                System.out.println(t.getName());
+                List<Method> setterMethods = getAllSetters(t);
+
+                Object o = t.newInstance();
+
+                for (Method method: setterMethods) {
+                    Class<?> [] classParameterList = method.getParameterTypes();
+                    method.invoke(o,classList.get(classParameterList[0].getName()));
+                }
+            }
+        }
+    }
+
+    public ArrayList<JsonNode> convertToClass(JsonNode jNode, ArrayList<JsonNode> x){
+        Iterator<JsonNode> it = jNode.elements();
+
+        while(it.hasNext()){
+
+            JsonNode node = it.next();
+            if(node.has("type")){
+                x.add(node);
+                convertToClass(node, x);
+            }
+        }
+        return x;
+    }
+    public String getFromKafka() throws JsonProcessingException {
+
+        Random rand = new Random();
+        int randomNum = rand.nextInt((100 - 2) + 1) + 2;
+
+        if ( randomNum < 30 ){
+            return generateApplication();
+        }
+        else if ( randomNum > 30 && randomNum < 70){
+            return generateServicePrincipal();
+        }
+        else {
+            return generateUser();
+        }
+
+    }
     public void scanner(){
 
         ArrayList<HashMap<String, String>> connectors = new ArrayList<>();
@@ -103,13 +165,14 @@ public class App
                     .asClass());
 
             Class<?> softwareClass = steps.iterator().next();
-            connectorConfigItemTable.put(connector.entrySet().iterator().next().getKey(), findDeepestLevel(getAllSetters(softwareClass), connector.entrySet().iterator().next().getKey()) , Software.class);
+            connectorConfigItemTable.put(connector.entrySet().iterator().next().getKey(), findDeepestLevel(getAllSetters(softwareClass), connector.entrySet().iterator().next().getKey()) , softwareClass);
         }
 
         System.out.println(connectorConfigItemTable.get("org.example.connectors.okta", org.example.connectors.okta.User.class));
         System.out.println(connectorConfigItemTable.get("org.example.connectors.onelogin", org.example.connectors.onelogin.ServicePrincipal.class));
 
     }
+
     public static List<Method> getAllSetters(Class<?> c){
         Method[] allMethods = c.getDeclaredMethods();
         List<Method> setters = new ArrayList<Method>();
@@ -236,12 +299,69 @@ public class App
 
     public Class<?> getParentClass(Set<Constructor> constructorSet){
 
-        Class<?> [] classList = constructorSet.iterator().next().getParameterTypes();
-        if(classList.length == 0 ){
-            return null;
+        Iterator<Constructor> it = constructorSet.iterator();
+        Class<?> c = null;
+
+        while(it.hasNext()){
+            Class<?>  [] classList = it.next().getParameterTypes();
+            if ( classList.length != 0){
+                c = classList[0];
+            }
         }
-        else {
-            return classList[0];
-        }
+        return c;
+    }
+
+    public String generateApplication() throws JsonProcessingException {
+        Faker faker = new Faker();
+        Application app = new Application();
+        String appName = faker.name().fullName();
+        app.setAppName(appName);
+        app.setAppId(faker.number().randomDigit());
+
+        DiscoveryObject discoveryObject = new DiscoveryObject(Application.class.getPackage().getName(), app);
+        ObjectMapper objectMapper = new ObjectMapper();
+        return objectMapper.writeValueAsString(discoveryObject);
+    }
+
+    public String generateServicePrincipal() throws JsonProcessingException {
+        Faker faker = new Faker();
+
+        Application app = new Application();
+        String appName = faker.name().fullName();
+        app.setAppName(appName);
+        app.setAppId(faker.number().randomDigit());
+
+        ServicePrincipal servicePrincipal = new ServicePrincipal(app);
+        String principalName = faker.name().fullName();
+        servicePrincipal.setServicePrincipalName(principalName);
+        servicePrincipal.setId(faker.number().randomDigit());
+
+        DiscoveryObject discoveryObject = new DiscoveryObject(ServicePrincipal.class.getPackage().getName(), servicePrincipal);
+        ObjectMapper objectMapper = new ObjectMapper();
+        return objectMapper.writeValueAsString(discoveryObject);
+
+    }
+
+    public String generateUser() throws JsonProcessingException {
+        Faker faker = new Faker();
+
+        Application app = new Application();
+        String appName = faker.name().fullName();
+        app.setAppName(appName);
+        app.setAppId(faker.number().randomDigit());
+
+        ServicePrincipal servicePrincipal = new ServicePrincipal(app);
+        String principalName = faker.name().fullName();
+        servicePrincipal.setServicePrincipalName(principalName);
+        servicePrincipal.setId(faker.number().randomDigit());
+
+        User user = new User(servicePrincipal);
+        String userName = faker.name().fullName();
+        user.setUserName(userName);
+        user.setId(faker.number().randomDigit());
+
+        DiscoveryObject discoveryObject = new DiscoveryObject(User.class.getPackage().getName(), user);
+        ObjectMapper objectMapper = new ObjectMapper();
+        return objectMapper.writeValueAsString(discoveryObject);
     }
 }

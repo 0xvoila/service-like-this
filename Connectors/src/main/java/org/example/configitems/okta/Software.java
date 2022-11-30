@@ -9,12 +9,14 @@ public class Software extends config_items.Software {
     String userName;
     String appId;
 
+
     public String getUserName() {
         return userName;
     }
 
     public void setUserName(User user) {
         this.userName = user.getUserName();
+        System.out.println("Setting up the username to "  + this.userName);
     }
 
     public String getId() {
@@ -22,14 +24,8 @@ public class Software extends config_items.Software {
     }
 
     public void setId(Application application) {
-        this.id = appId;
+        this.id = application.getAppId() + "23";
+        System.out.println("Setting up id of the software " + this.id);
     }
 
-    public String getAppId() {
-        return appId;
-    }
-
-    public void setAppId(String appId) {
-        this.appId = appId;
-    }
 }
