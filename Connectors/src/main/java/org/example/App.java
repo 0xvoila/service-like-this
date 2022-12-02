@@ -12,6 +12,7 @@ import config_items.BaseConfigItem;
 import org.example.connectors.BaseConnector;
 import org.example.connectors.okta.Application;
 import org.example.connectors.okta.ServicePrincipal;
+import org.example.connectors.okta.Usage;
 import org.example.connectors.okta.User;
 import org.reflections.Reflections;
 import static org.reflections.ReflectionUtils.*;
@@ -151,7 +152,10 @@ public class App
         else if ( randomNum > 30 && randomNum < 70){
             return generateServicePrincipal();
         }
-        else {
+        else if (randomNum > 70 && randomNum < 90){
+            return generateUsage();
+        }
+        else{
             return generateUser();
         }
 
@@ -336,9 +340,37 @@ public class App
         User user = new User(servicePrincipal);
         String userName = faker.name().fullName();
         user.setUserName(userName);
-        user.setId(faker.number().randomDigit());
+        int x = faker.number().randomDigit();
+        user.setId(x);
+
+        Usage usage = new Usage(servicePrincipal);
+        usage.setUserUsage(userName);
+        usage.setId(x);
 
         DiscoveryObject discoveryObject = new DiscoveryObject(User.class.getPackage().getName(), user);
+        ObjectMapper objectMapper = new ObjectMapper();
+        return objectMapper.writeValueAsString(discoveryObject);
+    }
+
+    public String generateUsage() throws JsonProcessingException {
+        Faker faker = new Faker();
+
+        Application app = new Application();
+        String appName = faker.name().fullName();
+        app.setAppName(appName);
+        app.setAppId(faker.number().randomDigit());
+
+        ServicePrincipal servicePrincipal = new ServicePrincipal(app);
+        String principalName = faker.name().fullName();
+        servicePrincipal.setServicePrincipalName(principalName);
+        servicePrincipal.setId(faker.number().randomDigit());
+
+
+        Usage usage = new Usage(servicePrincipal);
+        usage.setUserUsage("axnd");
+        usage.setId(faker.number().randomDigit());
+
+        DiscoveryObject discoveryObject = new DiscoveryObject(User.class.getPackage().getName(), usage);
         ObjectMapper objectMapper = new ObjectMapper();
         return objectMapper.writeValueAsString(discoveryObject);
     }

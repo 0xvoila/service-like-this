@@ -12,7 +12,7 @@ public class Usage implements BaseConnector {
 
     int id;
 
-    String userName;
+    String userUsage;
 
     public Usage(){
 
@@ -35,12 +35,12 @@ public class Usage implements BaseConnector {
         this.id = id;
     }
 
-    public String getUserName() {
-        return userName;
+    public String getUserUsage() {
+        return userUsage;
     }
 
-    public void setUserName(String userName) {
-        this.userName = userName;
+    public void setUserUsage(String userUsage) {
+        this.userUsage = userUsage;
     }
 
     public Usage(ServicePrincipal servicePrincipal){

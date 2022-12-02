@@ -1,8 +1,6 @@
 package org.example.configitems.okta;
 
-import org.example.App;
 import org.example.connectors.okta.Application;
-import org.example.connectors.okta.ServicePrincipal;
 import org.example.connectors.okta.Usage;
 import org.example.connectors.okta.User;
 
@@ -32,7 +30,7 @@ public class Software extends config_items.Software {
 
 
     public void setUserName(User user, Usage usage) {
-        this.userName = user.getUserName() + usage.getUserName();
+        this.userName = user.getUserName() + usage.getUserUsage();
 //        System.out.println("Setting up the username to "  + this.userName);
     }
 
