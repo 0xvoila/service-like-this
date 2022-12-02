@@ -9,6 +9,8 @@ public class Software extends BaseConfigItem{
     String userName;
     String appId;
 
+    String usage;
+
     public String getUserName() {
         return userName;
     }

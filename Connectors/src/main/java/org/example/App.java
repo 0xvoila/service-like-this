@@ -9,6 +9,8 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Table;
+import com.scalified.tree.TreeNode;
+import com.scalified.tree.multinode.ArrayMultiTreeNode;
 import config_items.BaseConfigItem;
 import config_items.Software;
 import org.checkerframework.checker.units.qual.A;
@@ -65,10 +67,26 @@ public class App
     public static void main( String[] args ) throws IOException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException, ClassNotFoundException {
 
         App app = new App();
-        app.scanner();
-        app.consume();
+
+        app.test();
+//        app.scanner();
+//        app.consume();
     }
 
+    public void test(){
+
+        TreeNode<String> application = new ArrayMultiTreeNode<>("Application");
+        TreeNode<String> user = new ArrayMultiTreeNode<>("User");
+        TreeNode<String> usage = new ArrayMultiTreeNode<>("Usage");
+
+        application.add(user);
+        application.add(usage);
+
+        System.out.println(user.root().data());
+        System.out.println(user.commonAncestor(usage));
+
+
+    }
     public void consume() throws IOException, InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException, ClassNotFoundException {
 
         ObjectMapper objectMapper = new ObjectMapper();
@@ -318,6 +336,7 @@ public class App
         Application app = new Application();
         String appName = faker.name().fullName();
         app.setAppName(appName);
+
         app.setAppId(faker.number().randomDigit());
 
         DiscoveryObject discoveryObject = new DiscoveryObject(Application.class.getPackage().getName(), app);

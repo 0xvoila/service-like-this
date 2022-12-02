@@ -7,7 +7,6 @@ import org.example.connectors.BaseConnector;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeName("org.example.connectors.okta.User")
-
 public class User implements BaseConnector {
 
     ServicePrincipal servicePrincipal;
