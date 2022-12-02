@@ -38,8 +38,8 @@ public class Software extends config_items.Software {
         return usage;
     }
 
-    public void setUsage(String usage) {
-        this.usage = usage;
+    public void setUsage(Application usage) {
+        this.usage = usage.getAppName();
     }
 
     public String getId() {

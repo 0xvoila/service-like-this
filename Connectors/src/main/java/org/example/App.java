@@ -1,19 +1,14 @@
 package org.example;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.javafaker.Faker;
 import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Multimap;
-import com.google.common.collect.Table;
 import com.scalified.tree.TreeNode;
 import com.scalified.tree.multinode.ArrayMultiTreeNode;
 import config_items.BaseConfigItem;
-import config_items.Software;
-import org.checkerframework.checker.units.qual.A;
 import org.example.connectors.BaseConnector;
 import org.example.connectors.okta.Application;
 import org.example.connectors.okta.ServicePrincipal;
@@ -38,29 +33,8 @@ import java.util.*;
 public class App 
 {
 
-    class Node{
-         Multimap<Object, Object> DAG = ArrayListMultimap.create();
-         Object rootNode = null;
-
-        public Multimap<Object, Object> getDAG() {
-            return DAG;
-        }
-
-        public void setDAG(Multimap<Object, Object> DAG) {
-            this.DAG = DAG;
-        }
-
-        public Object getRootNode() {
-            return rootNode;
-        }
-
-        public void setRootNode(Object rootNode) {
-            this.rootNode = rootNode;
-        }
-    }
-
-    Table<String, Class<?>, Class<?>> connectorConfigItemTable = HashBasedTable.create();
-    HashMap<String, Node> dagMap = new HashMap<>();
+    Multimap<String, String> connectorConfigItemTable = ArrayListMultimap.create();
+    HashMap<String, TreeNode<String>> dagMap = new HashMap<>();
 
 
 
@@ -69,8 +43,8 @@ public class App
         App app = new App();
 
         app.test();
-//        app.scanner();
-//        app.consume();
+        app.scanner();
+        app.consume();
     }
 
     public void test(){
@@ -103,23 +77,22 @@ public class App
                Object o = objectMapper.readValue(node.toString(), Class.forName(node.get("type").asText()));
                classList.put(o.getClass().getName(), o);
             }
-            DiscoveryObject discoveryObject = objectMapper.readValue(s, DiscoveryObject.class);
-            BaseConnector connector = discoveryObject.getConnectorClass();
-//            System.out.println(connector.getClass().getName());
-            Class<?> t = connectorConfigItemTable.get(discoveryObject.getConnectorName(), connector.getClass());
 
-            if ( t != null){
-//                System.out.println(t.getName());
-                List<Method> setterMethods = getAllSetters(t);
-
-                Object o = t.newInstance();
-
-                for (Method method: setterMethods) {
-                    Class<?> [] classParameterList = method.getParameterTypes();
-                    method.invoke(o,classList.get(classParameterList[0].getName()));
+            for(String  configItem: connectorConfigItemTable.keys()) {
+                List<String> dependencyList = (List<String>) connectorConfigItemTable.get(configItem);
+                if (dependencyList.size() == 1 && dependencyList.get(0).equals(jNode.get("connectorClass").get("type").asText())){
+                    Class<?> t =  Class.forName(configItem);
+                    List<Method> setterMethods = getAllSetters(t);
+                    Object o = t.newInstance();
+                    for (Method method: setterMethods) {
+                        Class<?> [] classParameterList = method.getParameterTypes();
+                        method.invoke(o,classList.get(classParameterList[0].getName()));
+                    }
+                    System.out.println(objectMapper.writeValueAsString(o));
                 }
-
-                System.out.println(objectMapper.writeValueAsString(o));
+                else{
+//                    Support for functions which has multi dependency
+                }
             }
         }
     }
@@ -185,11 +158,12 @@ public class App
                     .asClass());
 
             Class<?> softwareClass = steps.iterator().next();
-            connectorConfigItemTable.put(connector.entrySet().iterator().next().getKey(), findDeepestLevel(getAllSetters(softwareClass), connector.entrySet().iterator().next().getKey()) , softwareClass);
+            ArrayList<String> dependentClassList = findDependencyOfConfigItem(getAllSetters(softwareClass), connector.entrySet().iterator().next().getKey());
+            for (String dependent:
+                 dependentClassList) {
+                connectorConfigItemTable.put(softwareClass.getName(), dependent);
+            }
         }
-
-//        System.out.println(connectorConfigItemTable.get("org.example.connectors.okta", org.example.connectors.okta.User.class));
-//        System.out.println(connectorConfigItemTable.get("org.example.connectors.onelogin", org.example.connectors.onelogin.ServicePrincipal.class));
 
     }
 
@@ -205,8 +179,12 @@ public class App
         return setters;
     }
 
-    public Class<?> findDeepestLevel(List<Method> setterMethodList, String connector){
-        Class<?> deep = null;
+    public ArrayList<String> findDependencyOfConfigItem(List<Method> setterMethodList, String connector){
+
+        TreeNode<String> DAG = dagMap.get(connector);
+
+        ArrayList<String> dependents = new ArrayList<>();
+
         ArrayList<Class<?>> arrayList = new ArrayList<>();
 
         for(Method setter: setterMethodList){
@@ -218,77 +196,19 @@ public class App
         Iterator<Class<?>> it  = u.iterator();
 
         while(it.hasNext()){
-            Class<?> x = it.next();
-            deep = deeperNode(dagMap.get(connector), x, deep);
+            String x = it.next().getName();
+            TreeNode<String> n = DAG.find(x);
+            if (n != null && n.isLeaf()){
+
+                dependents.add(x);
+            }
         }
-        return deep;
+        return dependents;
     }
 
-    public Class<?> deeperNode(Node node, Class<?>x , Class<?> deep){
-
-        Object o = node.rootNode;
-        Multimap<Object, Object> DAG = node.DAG;
-
-        int xHeight = 0;
-        Boolean found = false;
-
-        while(true){
-            if ( o != x){
-                xHeight = xHeight + 1;
-            }
-            else{
-                found = true;
-                break;
-            }
-
-            if(DAG.containsKey(o)){
-                o = DAG.get(o).iterator().next();
-            }
-            else{
-                break;
-            }        }
-
-        if ( !found){
-            xHeight = -1;
-        }
-
-        found = false;
-        int deepHeight = 0;
-        o = node.rootNode;
-        while(true){
-            if ( o != deep){
-                deepHeight = deepHeight + 1;
-            }
-            else{
-                found = true;
-                break;
-            }
-
-            if(DAG.containsKey(o)){
-                o = DAG.get(o).iterator().next();
-            }
-            else{
-                break;
-            }
-
-        }
-
-        if ( !found){
-            deepHeight = -100;
-        }
-
-        if ( xHeight > deepHeight){
-            return x;
-        }
-        else{
-            return deep;
-        }
-    }
-
-    public Node createDAG(Reflections reflections){
-
-        Multimap<Object, Object> DAG = ArrayListMultimap.create();
-        Object rootNode = null;
+    public TreeNode<String> createDAG(Reflections reflections){
+        TreeNode<String> root = new ArrayMultiTreeNode<>(null);
+        HashMap<String, TreeNode<String>> branchMap = new HashMap<>();
 
         Set<Class<?>> steps =
                 reflections.get(SubTypes.of(BaseConnector.class).asClass());
@@ -296,21 +216,28 @@ public class App
             Set<Constructor> constructorSet = getConstructorSetByClass(step);
             Class<?> parentClass = getParentClass(constructorSet);
             if(parentClass != null){
-//                System.out.println( step.getName() + " ----> " + parentClass.getName());
-                DAG.put(parentClass, step);
-//                System.out.println(DAG);
+                if ( branchMap.containsKey(parentClass.getName())){
+                    branchMap.get(parentClass.getName()).add(new ArrayMultiTreeNode<>(step.getName()));
+                }
+                else{
+                    TreeNode<String>  parent = new ArrayMultiTreeNode<>(parentClass.getName());
+                    parent.add(new ArrayMultiTreeNode<>(step.getName()));
+                    branchMap.put(parent.data(), parent);
+                }
             }
             else{
-                rootNode = step;
+                root.setData(step.getName());
             }
 
         }
 
-        Node node = new Node();
-        node.setDAG(DAG);
-        node.setRootNode(rootNode);
+        for (Map.Entry<String, TreeNode<String>> entry : branchMap.entrySet()) {
+            if ( root.find(entry.getValue().data()) == null){
+                root.add(entry.getValue());
+            }
+        }
 
-        return node;
+        return root;
 
     }
     public  Set<Constructor> getConstructorSetByClass(Class<?> c){
