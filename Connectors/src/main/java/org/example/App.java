@@ -22,6 +22,7 @@ import org.reflections.util.FilterBuilder;
 
 import java.io.IOException;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
@@ -35,10 +36,11 @@ public class App
 
     Multimap<String, String> connectorConfigItemTable = ArrayListMultimap.create();
     HashMap<String, TreeNode<String>> dagMap = new HashMap<>();
+    HashMap<String, String> redis = new HashMap<>();
 
 
 
-    public static void main( String[] args ) throws IOException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException, ClassNotFoundException {
+    public static void main( String[] args ) throws IOException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException, ClassNotFoundException, NoSuchFieldException {
 
         App app = new App();
 
@@ -61,7 +63,7 @@ public class App
 
 
     }
-    public void consume() throws IOException, InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException, ClassNotFoundException {
+    public void consume() throws IOException, InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException, ClassNotFoundException, NoSuchFieldException {
 
         ObjectMapper objectMapper = new ObjectMapper();
 
@@ -90,8 +92,36 @@ public class App
                     }
                     System.out.println(objectMapper.writeValueAsString(o));
                 }
-                else{
-//                    Support for functions which has multi dependency
+                else if (dependencyList.contains(jNode.get("connectorClass").get("type").asText())){
+//                    Check if depedencyList objects are present in the redis or not
+                    ArrayList<String> checkInRedis = new ArrayList<>();
+                    for(String dep : dependencyList){
+                        if ( !dep.equals(jNode.get("connectorClass").get("type").asText())){
+                            checkInRedis.add(dep);
+                        }
+                        Object o = objectMapper.readValue(jNode.get("connectorClass").toString(), Class.forName(jNode.get("connectorClass").get("type").asText()));
+                        Class<?> c = Class.forName(jNode.get("connectorClass").get("type").asText());
+                        Method getterMethod = c.getDeclaredMethod("get" + "id".substring(0, 1).toUpperCase()
+                                + "id".substring(1));
+                        Object fieldValue = getterMethod.invoke(o);
+
+//                        Now check if it exists in
+                        Boolean found = false;
+                        for(String f : checkInRedis){
+                            if(redis.get(f + "_" + fieldValue) == null){
+                                found = false;
+                                redis.put(jNode.get("connectorClass").get("type").asText() + "_" + fieldValue,jNode.get("connectorClass").toString());
+                                break;
+                            }
+                            else{
+                                found = true;
+                            }
+                        }
+
+                        if(found){
+//                            Here starts with the field
+                        }
+                    }
                 }
             }
         }
