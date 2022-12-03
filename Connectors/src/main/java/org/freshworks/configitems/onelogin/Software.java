@@ -1,7 +1,7 @@
-package org.example.configitems.onelogin;
+package org.freshworks.configitems.onelogin;
 
-import org.example.connectors.onelogin.Application;
-import org.example.connectors.onelogin.ServicePrincipal;
+import org.freshworks.connectors.onelogin.Application;
+import org.freshworks.connectors.onelogin.ServicePrincipal;
 
 
 public class Software extends config_items.Software {

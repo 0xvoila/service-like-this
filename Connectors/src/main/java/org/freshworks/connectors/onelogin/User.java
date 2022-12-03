@@ -1,6 +1,6 @@
-package org.example.connectors.onelogin;
+package org.freshworks.connectors.onelogin;
 
-import org.example.connectors.BaseConnector;
+import org.freshworks.connectors.BaseConnector;
 
 public class User implements BaseConnector {
 

@@ -1,6 +1,6 @@
-package org.example.configitems.okta;
+package org.freshworks.configitems.okta;
 
-import org.example.connectors.okta.User;
+import org.freshworks.connectors.okta.User;
 
 public class S3Bucket {
 

@@ -1,10 +1,10 @@
-package org.example.connectors;
+package org.freshworks.connectors;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.example.connectors.okta.Application;
-import org.example.connectors.okta.ServicePrincipal;
-import org.example.connectors.okta.User;
+import org.freshworks.connectors.okta.Application;
+import org.freshworks.connectors.okta.ServicePrincipal;
+import org.freshworks.connectors.okta.User;
 
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME,

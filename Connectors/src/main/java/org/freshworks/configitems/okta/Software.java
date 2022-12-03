@@ -1,8 +1,8 @@
-package org.example.configitems.okta;
+package org.freshworks.configitems.okta;
 
-import org.example.connectors.okta.Application;
-import org.example.connectors.okta.Usage;
-import org.example.connectors.okta.User;
+import org.freshworks.connectors.okta.Application;
+import org.freshworks.connectors.okta.Usage;
+import org.freshworks.connectors.okta.User;
 
 public class Software extends config_items.Software {
 

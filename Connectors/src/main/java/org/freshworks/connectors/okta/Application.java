@@ -1,8 +1,8 @@
-package org.example.connectors.okta;
+package org.freshworks.connectors.okta;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import org.example.connectors.BaseConnector;
+import org.freshworks.connectors.BaseConnector;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeName("org.example.connectors.okta.Application")

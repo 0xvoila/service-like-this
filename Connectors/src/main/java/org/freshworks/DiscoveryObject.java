@@ -1,9 +1,9 @@
-package org.example;
+package org.freshworks;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
-import org.example.connectors.BaseConnector;
-import org.example.connectors.okta.Application;
-import org.example.connectors.okta.ServicePrincipal;
+import org.freshworks.connectors.BaseConnector;
+import org.freshworks.connectors.okta.Application;
+import org.freshworks.connectors.okta.ServicePrincipal;
 
 @JsonSubTypes({
 

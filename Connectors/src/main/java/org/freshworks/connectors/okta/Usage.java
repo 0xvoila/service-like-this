@@ -1,21 +1,20 @@
-package org.example.connectors.okta;
+package org.freshworks.connectors.okta;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
-import org.example.connectors.BaseConnector;
+import org.freshworks.connectors.BaseConnector;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeName("org.example.connectors.okta.User")
-public class User implements BaseConnector {
+public class Usage implements BaseConnector {
 
     ServicePrincipal servicePrincipal;
 
     int id;
 
-    String userName;
+    String userUsage;
 
-    public User(){
+    public Usage(){
 
     }
 
@@ -36,15 +35,15 @@ public class User implements BaseConnector {
         this.id = id;
     }
 
-    public String getUserName() {
-        return userName;
+    public String getUserUsage() {
+        return userUsage;
     }
 
-    public void setUserName(String userName) {
-        this.userName = userName;
+    public void setUserUsage(String userUsage) {
+        this.userUsage = userUsage;
     }
 
-    public User(ServicePrincipal servicePrincipal){
+    public Usage(ServicePrincipal servicePrincipal){
         this.servicePrincipal = servicePrincipal;
     }
 

@@ -1,7 +1,7 @@
 package config_items;
 
-import org.example.connectors.okta.Application;
-import org.example.connectors.okta.User;
+import org.freshworks.connectors.okta.Application;
+import org.freshworks.connectors.okta.User;
 
 public class Software extends BaseConfigItem{
 
