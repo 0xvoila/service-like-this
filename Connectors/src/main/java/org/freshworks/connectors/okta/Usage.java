@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import org.freshworks.connectors.BaseConnector;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonTypeName("org.example.connectors.okta.User")
+@JsonTypeName("org.freshworks.connectors.okta.Usage")
 public class Usage implements BaseConnector {
 
     ServicePrincipal servicePrincipal;

@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import org.freshworks.connectors.BaseConnector;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonTypeName("org.example.connectors.okta.Application")
+@JsonTypeName("org.freshworks.connectors.okta.Application")
 public class Application implements BaseConnector {
 
     int appId;

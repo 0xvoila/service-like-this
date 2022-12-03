@@ -1,4 +1,4 @@
-package org.freshworks;
+package org.freshworks.core;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;

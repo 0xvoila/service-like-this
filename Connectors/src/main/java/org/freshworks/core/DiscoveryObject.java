@@ -1,4 +1,4 @@
-package org.freshworks;
+package org.freshworks.core;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import org.freshworks.connectors.BaseConnector;
@@ -7,8 +7,8 @@ import org.freshworks.connectors.okta.ServicePrincipal;
 
 @JsonSubTypes({
 
-        @JsonSubTypes.Type(value = Application.class, name = "org.example.connectors.okta.Application"),
-        @JsonSubTypes.Type(value = ServicePrincipal.class, name = "org.example.connectors.okta.ServicePrincipal")
+        @JsonSubTypes.Type(value = Application.class, name = "org.freshworks.connectors.okta.Application"),
+        @JsonSubTypes.Type(value = ServicePrincipal.class, name = "org.freshworks.connectors.okta.ServicePrincipal")
 })
 
 public class DiscoveryObject {
