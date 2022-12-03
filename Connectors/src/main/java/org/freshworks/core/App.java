@@ -56,10 +56,7 @@ public class App
             JsonNode jNode = objectMapper.readTree(s);
             String mainStepPathAsString = jNode.get("connectorClass").get(JsonTypeInfo_As_PROPERTY).asText();
             String mainStepObjectAsString = jNode.get("connectorClass").toString();
-            ArrayList<JsonNode> unwrappedStepsOfMainStep =  unwrapMainStep(jNode, new ArrayList<JsonNode>());
-            HashMap<String, Object> unwrappedStepClassMap = unwrapMainStepToClassMap(unwrappedStepsOfMainStep);
-
-
+            ArrayList<String> unwrappedStepsOfMainStep =  unwrapMainStep(s);
             for(String  configItem: connectorConfigItemTable.keys()) {
 
                 List<String> configItemStepDependencyList = getConfigItemStepDependencyList(configItem);
@@ -68,6 +65,7 @@ public class App
                     Class<?> configItemClass =  Class.forName(configItem);
                     List<Method> setterMethods = Utility.getAllSetters(configItemClass);
                     Object configItemClassObject = configItemClass.newInstance();
+                    HashMap<String, Object> unwrappedStepClassMap = unwrappedMainStepToClassMap(unwrappedStepsOfMainStep);
                     for (Method method: setterMethods) {
                         Class<?> [] configItemMethodParameterList = method.getParameterTypes();
                         method.invoke(configItemClassObject,unwrappedStepClassMap.get(configItemMethodParameterList[0].getName()));
@@ -84,8 +82,9 @@ public class App
                     Object fieldValue = getterMethod.invoke(mainStepClassObject);
                     redis.put(mainStepPathAsString + "_" + fieldValue,mainStepObjectAsString);
 
-//                        Now check if it exists in
+//                  Now check if it exists in
                     Boolean found = false;
+                    ArrayList<String> configItemStepDependencyObjectListAsString = new ArrayList<>();
                     for(String f : configItemStepDependencyList){
                         if(redis.get(f + "_" + fieldValue) == null){
                             found = false;
@@ -93,12 +92,12 @@ public class App
                         }
                         else{
                             found = true;
+                            configItemStepDependencyObjectListAsString.add(redis.get(f + "_" + fieldValue));
                         }
                     }
 
                     if(found){
-//                           Here starts with the field
-
+                        HashMap<String, Object> unwrappedStepClassMap = unwrappedMainStepToClassMap(configItemStepDependencyObjectListAsString);
                     }
                 }
             }
@@ -106,7 +105,22 @@ public class App
     }
 
 
-    public ArrayList<JsonNode> unwrapMainStep(JsonNode jNode, ArrayList<JsonNode> x){
+    public ArrayList<String> unwrapMainStep(String mainStepObjectAsString) throws IOException {
+        ArrayList<String> unwrappedMainStepAsString = new ArrayList<>();
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode jNode = objectMapper.readTree(mainStepObjectAsString);
+        ArrayList<JsonNode> unWrapMainStepByJsonNode = unWrapMainStepByJsonNode(jNode, new ArrayList<JsonNode>());
+
+        for (JsonNode j:
+                unWrapMainStepByJsonNode) {
+            unwrappedMainStepAsString.add(j.toString());
+        }
+
+        return unwrappedMainStepAsString;
+    }
+
+    private ArrayList<JsonNode> unWrapMainStepByJsonNode(JsonNode jNode, ArrayList<JsonNode> x){
+
         Iterator<JsonNode> it = jNode.elements();
 
         while(it.hasNext()){
@@ -114,7 +128,7 @@ public class App
             JsonNode node = it.next();
             if(node.has(JsonTypeInfo_As_PROPERTY)){
                 x.add(node);
-                unwrapMainStep(node, x);
+                unWrapMainStepByJsonNode(node, x);
             }
         }
         return x;
@@ -137,12 +151,12 @@ public class App
         return (List<String>) connectorConfigItemTable.get(configItem);
     }
 
-    public HashMap<String, Object> unwrapMainStepToClassMap(ArrayList<JsonNode> unwrappedStepsOfMainStep) throws ClassNotFoundException, IOException {
+    public HashMap<String, Object> unwrappedMainStepToClassMap(ArrayList<String> unwrappedStepsOfMainStep) throws ClassNotFoundException, IOException {
 
         ObjectMapper objectMapper = new ObjectMapper();
         HashMap<String, Object> unwrappedStepClassMap = new HashMap<>();
-        for (JsonNode eachStep: unwrappedStepsOfMainStep) {
-            Object o = objectMapper.readValue(eachStep.toString(), Class.forName(eachStep.get(JsonTypeInfo_As_PROPERTY).asText()));
+        for (String eachStep: unwrappedStepsOfMainStep) {
+            Object o = objectMapper.readValue(eachStep, Class.forName(objectMapper.readTree(eachStep).get(JsonTypeInfo_As_PROPERTY).asText()));
             unwrappedStepClassMap.put(o.getClass().getName(), o);
         }
         return unwrappedStepClassMap;
