@@ -103,7 +103,11 @@ public class App
                         HashMap<String, Object> unwrappedStepClassMap = unwrappedMainStepToClassMap(configItemStepDependencyObjectListAsString);
                         for (Method method: setterMethods) {
                             Class<?> [] configItemMethodParameterList = method.getParameterTypes();
-                            method.invoke(configItemClassObject,unwrappedStepClassMap.values());
+                            Object[] object = new Object[configItemMethodParameterList.length];
+                            for(int i =0; i< configItemMethodParameterList.length; i++){
+                                object[i] = unwrappedStepClassMap.get(configItemMethodParameterList[i].getName());
+                            }
+                            method.invoke(configItemClassObject,object);
                         }
                     }
                 }
