@@ -97,7 +97,14 @@ public class App
                     }
 
                     if(found){
+                        Class<?> configItemClass =  Class.forName(configItem);
+                        List<Method> setterMethods = Utility.getAllSetters(configItemClass);
+                        Object configItemClassObject = configItemClass.newInstance();
                         HashMap<String, Object> unwrappedStepClassMap = unwrappedMainStepToClassMap(configItemStepDependencyObjectListAsString);
+                        for (Method method: setterMethods) {
+                            Class<?> [] configItemMethodParameterList = method.getParameterTypes();
+                            method.invoke(configItemClassObject,unwrappedStepClassMap.values());
+                        }
                     }
                 }
             }
