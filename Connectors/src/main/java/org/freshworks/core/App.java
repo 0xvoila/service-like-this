@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Multimap;
 import com.scalified.tree.TreeNode;
 import com.scalified.tree.multinode.ArrayMultiTreeNode;
+import org.checkerframework.checker.units.qual.A;
 import org.freshworks.Faker;
 
 import java.io.IOException;
@@ -56,7 +57,7 @@ public class App
             JsonNode jNode = objectMapper.readTree(s);
             String mainStepPathAsString = jNode.get("connectorClass").get(JsonTypeInfo_As_PROPERTY).asText();
             String mainStepObjectAsString = jNode.get("connectorClass").toString();
-            ArrayList<String> unwrappedStepsOfMainStep =  unwrapMainStep(s);
+            ArrayList<String> unwrappedStepsOfMainStep =  unwrapMainStep(mainStepObjectAsString);
             for(String  configItem: connectorConfigItemTable.keys()) {
 
                 List<String> configItemStepDependencyList = getConfigItemStepDependencyList(configItem);
@@ -100,7 +101,12 @@ public class App
                         Class<?> configItemClass =  Class.forName(configItem);
                         List<Method> setterMethods = Utility.getAllSetters(configItemClass);
                         Object configItemClassObject = configItemClass.newInstance();
-                        HashMap<String, Object> unwrappedStepClassMap = unwrappedMainStepToClassMap(configItemStepDependencyObjectListAsString);
+                        unwrappedStepsOfMainStep = new ArrayList<>();
+                        for( int i=0; i< configItemStepDependencyObjectListAsString.size(); i++){
+                            unwrappedStepsOfMainStep.addAll(unwrapMainStep(configItemStepDependencyObjectListAsString.get(i)));
+                        }
+
+                        HashMap<String, Object> unwrappedStepClassMap = unwrappedMainStepToClassMap(unwrappedStepsOfMainStep);
                         for (Method method: setterMethods) {
                             Class<?> [] configItemMethodParameterList = method.getParameterTypes();
                             Object[] object = new Object[configItemMethodParameterList.length];
@@ -109,6 +115,8 @@ public class App
                             }
                             method.invoke(configItemClassObject,object);
                         }
+
+                        System.out.println(objectMapper.writeValueAsString(configItemClassObject));
                     }
                 }
             }
@@ -122,8 +130,10 @@ public class App
         JsonNode jNode = objectMapper.readTree(mainStepObjectAsString);
         ArrayList<JsonNode> unWrapMainStepByJsonNode = unWrapMainStepByJsonNode(jNode, new ArrayList<JsonNode>());
 
-        for (JsonNode j:
-                unWrapMainStepByJsonNode) {
+//        Here adding the main jNode
+        unWrapMainStepByJsonNode.add(jNode);
+
+        for (JsonNode j: unWrapMainStepByJsonNode) {
             unwrappedMainStepAsString.add(j.toString());
         }
 
@@ -132,14 +142,12 @@ public class App
 
     private ArrayList<JsonNode> unWrapMainStepByJsonNode(JsonNode jNode, ArrayList<JsonNode> x){
 
-        Iterator<JsonNode> it = jNode.elements();
-
+        Iterator<Map.Entry<String,JsonNode>> it = jNode.fields();
         while(it.hasNext()){
-
-            JsonNode node = it.next();
-            if(node.has(JsonTypeInfo_As_PROPERTY)){
-                x.add(node);
-                unWrapMainStepByJsonNode(node, x);
+            Map.Entry<String, JsonNode> entry = it.next();
+            if (entry.getValue().isObject() && entry.getValue().has(JsonTypeInfo_As_PROPERTY)){
+                x.add(entry.getValue());
+                unWrapMainStepByJsonNode(entry.getValue(), x);
             }
         }
         return x;

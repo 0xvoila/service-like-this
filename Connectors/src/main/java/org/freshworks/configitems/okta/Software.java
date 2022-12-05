@@ -3,6 +3,7 @@ package org.freshworks.configitems.okta;
 import org.freshworks.connectors.okta.Application;
 import org.freshworks.connectors.okta.Usage;
 import org.freshworks.connectors.okta.User;
+import org.freshworks.core.App;
 
 public class Software extends config_items.Software {
 
