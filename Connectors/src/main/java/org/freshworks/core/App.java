@@ -6,8 +6,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Multimap;
 import com.scalified.tree.TreeNode;
 import com.scalified.tree.multinode.ArrayMultiTreeNode;
-import org.checkerframework.checker.units.qual.A;
-import org.freshworks.Faker;
+import org.freshworks.faker.BoxFaker;
+import org.freshworks.faker.OktaFaker;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -33,7 +33,7 @@ public class App
 
         ArrayList<HashMap<String, String>> connectorConfig = new ArrayList<>();
         HashMap<String, String> x = new HashMap<>();
-        x.put("org.freshworks.connectors.okta", "org.freshworks.configitems.okta");
+        x.put("org.freshworks.connectors.box", "org.freshworks.configitems.box");
         connectorConfig.add(x);
 //        x = new HashMap<>();
 //        x.put("org.freshworks.connectors.onelogin", "org.freshworks.configitems.onelogin");
@@ -187,16 +187,11 @@ public class App
         int randomNum = rand.nextInt((100 - 2) + 1) + 2;
 
         if ( randomNum < 5 ){
-            return Faker.generateApplication();
+            return BoxFaker.generateApplication();
         }
-        else if ( randomNum > 5 && randomNum < 10){
-            return Faker.generateServicePrincipal();
-        }
-        else if (randomNum > 10 && randomNum < 50){
-            return Faker.generateUsage();
-        }
+
         else{
-            return Faker.generateUser();
+            return BoxFaker.generateUser();
         }
 
     }

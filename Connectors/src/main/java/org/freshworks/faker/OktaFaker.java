@@ -1,4 +1,4 @@
-package org.freshworks;
+package org.freshworks.faker;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -8,7 +8,7 @@ import org.freshworks.connectors.okta.Usage;
 import org.freshworks.connectors.okta.User;
 import org.freshworks.core.DiscoveryObject;
 
-public class Faker {
+public class OktaFaker {
 
     public static String generateApplication() throws JsonProcessingException {
         com.github.javafaker.Faker faker = new com.github.javafaker.Faker();

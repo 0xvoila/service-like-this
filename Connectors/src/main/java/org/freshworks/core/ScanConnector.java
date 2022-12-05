@@ -66,8 +66,14 @@ public class ScanConnector {
         }
 
         for (Map.Entry<String, TreeNode<String>> entry : branchMap.entrySet()) {
-            if ( root.find(entry.getValue().data()) == null){
+            TreeNode<String> node = root.find(entry.getValue().data());
+            if ( node == null){
                 root.add(entry.getValue());
+            }
+            else{
+                for( TreeNode<String> v : entry.getValue().subtrees()){
+                    node.add(v);
+                }
             }
         }
 
