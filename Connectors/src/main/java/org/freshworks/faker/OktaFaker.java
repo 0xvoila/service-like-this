@@ -6,7 +6,7 @@ import org.freshworks.connectors.okta.Application;
 import org.freshworks.connectors.okta.ServicePrincipal;
 import org.freshworks.connectors.okta.Usage;
 import org.freshworks.connectors.okta.User;
-import org.freshworks.core.DiscoveryObject;
+import org.freshworks.core.model.DiscoveryObject;
 
 public class OktaFaker {
 

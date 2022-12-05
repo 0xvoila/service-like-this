@@ -1,4 +1,4 @@
-package org.freshworks.core;
+package org.freshworks.core.utils;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;

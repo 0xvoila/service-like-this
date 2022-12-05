@@ -1,4 +1,4 @@
-package org.freshworks.core;
+package org.freshworks.core.main;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -6,8 +6,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Multimap;
 import com.scalified.tree.TreeNode;
 import com.scalified.tree.multinode.ArrayMultiTreeNode;
+import org.freshworks.core.utils.Utility;
+import org.freshworks.core.scanners.ScanConfigItem;
+import org.freshworks.core.scanners.ScanConnector;
 import org.freshworks.faker.BoxFaker;
-import org.freshworks.faker.OktaFaker;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -66,6 +68,7 @@ public class App
                     Class<?> configItemClass =  Class.forName(configItem);
                     List<Method> setterMethods = Utility.getAllSetters(configItemClass);
                     Object configItemClassObject = configItemClass.newInstance();
+                    LookupField lookupField = configItemClass.getAnnotation(LookupField.class);
                     HashMap<String, Object> unwrappedStepClassMap = unwrappedMainStepToClassMap(unwrappedStepsOfMainStep);
                     for (Method method: setterMethods) {
                         Class<?> [] configItemMethodParameterList = method.getParameterTypes();
@@ -190,8 +193,11 @@ public class App
             return BoxFaker.generateApplication();
         }
 
-        else{
+        else if ( randomNum > 5 && randomNum < 50){
             return BoxFaker.generateUser();
+        }
+        else {
+            return BoxFaker.generateUsage();
         }
 
     }

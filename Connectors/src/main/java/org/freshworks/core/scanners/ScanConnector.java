@@ -1,4 +1,4 @@
-package org.freshworks.core;
+package org.freshworks.core.scanners;
 
 import com.scalified.tree.TreeNode;
 import com.scalified.tree.multinode.ArrayMultiTreeNode;

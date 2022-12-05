@@ -2,12 +2,16 @@ package org.freshworks.configitems.box;
 
 import config_items.BaseConfigItem;
 import org.freshworks.connectors.box.Application;
+import org.freshworks.connectors.box.Usage;
 import org.freshworks.connectors.box.User;
+import org.freshworks.core.main.LookupField;
 
 public class Software extends BaseConfigItem {
 
     String id;
     String softwareName;
+
+    String usage;
 
     String userName;
 
@@ -37,5 +41,15 @@ public class Software extends BaseConfigItem {
 
     public void setSoftwareName(Application application) {
         this.softwareName = application.getApplicationName();
+    }
+
+    public String getUsage() {
+
+        return usage;
+    }
+
+    @LookupField(leftClass = User.class, rightClass = Usage.class, leftClassField = "id", rightClassField = "login", join_type = "inner")
+    public void setUsage(Usage usage, User user) {
+        this.usage = user.getAddress() + " / " + usage.getUsage();
     }
 }

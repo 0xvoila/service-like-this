@@ -26,6 +26,11 @@ public class User implements BaseConnector {
 
     Application application;
 
+
+    public User(Application application){
+        this.application = application;
+    }
+
     public Application getApplication() {
         return application;
     }
@@ -34,9 +39,6 @@ public class User implements BaseConnector {
         this.application = application;
     }
 
-    public User(Application application){
-        this.application = application;
-    }
 
     public User(){
 

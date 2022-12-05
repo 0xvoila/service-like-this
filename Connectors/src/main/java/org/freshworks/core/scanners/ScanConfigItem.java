@@ -1,9 +1,10 @@
-package org.freshworks.core;
+package org.freshworks.core.scanners;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.scalified.tree.TreeNode;
 import config_items.BaseConfigItem;
+import org.freshworks.core.utils.Utility;
 import org.reflections.Reflections;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;

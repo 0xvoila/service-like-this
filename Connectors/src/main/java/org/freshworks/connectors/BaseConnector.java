@@ -19,7 +19,8 @@ import static org.freshworks.Constants.JsonTypeInfo_As_PROPERTY;
         @JsonSubTypes.Type(value = User.class, name = "org.freshworks.connectors.okta.User"),
         @JsonSubTypes.Type(value = Usage.class, name = "org.freshworks.connectors.okta.Usage"),
         @JsonSubTypes.Type(value = org.freshworks.connectors.box.User.class, name = "org.freshworks.connectors.box.User"),
-        @JsonSubTypes.Type(value = org.freshworks.connectors.box.Application.class, name = "org.freshworks.connectors.box.Application")
+        @JsonSubTypes.Type(value = org.freshworks.connectors.box.Application.class, name = "org.freshworks.connectors.box.Application"),
+        @JsonSubTypes.Type(value = org.freshworks.connectors.box.Usage.class, name = "org.freshworks.connectors.box.Usage")
 })
 public interface BaseConnector {
 
