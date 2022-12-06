@@ -35,12 +35,14 @@ public class ScanConfigItem {
                     filter(withNamePrefix(connector.entrySet().iterator().next().getValue()))
                     .asClass());
 
-            Class<?> softwareClass = steps.iterator().next();
-            ArrayList<String> dependentClassList = findDependencyOfConfigItem(Utility.getAllSetters(softwareClass), connector.entrySet().iterator().next().getKey(), dagMap);
-            for (String dependent:
-                    dependentClassList) {
-                connectorConfigItemTable.put(softwareClass.getName(), dependent);
+            for (Class<?> configItem : steps) {
+                ArrayList<String> dependentClassList = findDependencyOfConfigItem(Utility.getAllSetters(configItem), connector.entrySet().iterator().next().getKey(), dagMap);
+                for (String dependent :
+                        dependentClassList) {
+                    connectorConfigItemTable.put(configItem.getName(), dependent);
+                }
             }
+
         }
 
         return connectorConfigItemTable;
