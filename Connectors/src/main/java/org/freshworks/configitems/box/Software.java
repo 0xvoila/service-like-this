@@ -4,7 +4,7 @@ import config_items.BaseConfigItem;
 import org.freshworks.connectors.box.Application;
 import org.freshworks.connectors.box.Usage;
 import org.freshworks.connectors.box.User;
-import org.freshworks.core.main.LookupField;
+import org.freshworks.core.Annotations.LookupField;
 
 public class Software extends BaseConfigItem {
 

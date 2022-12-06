@@ -4,11 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Multimap;
-import com.scalified.tree.TreeNode;
-import com.scalified.tree.multinode.ArrayMultiTreeNode;
+import org.freshworks.core.Annotations.LookupField;
 import org.freshworks.core.utils.Utility;
-import org.freshworks.core.scanners.ScanConfigItem;
-import org.freshworks.core.scanners.ScanConnector;
 import org.freshworks.faker.BoxFaker;
 
 import java.io.IOException;
@@ -19,38 +16,16 @@ import java.util.*;
 import static org.freshworks.Constants.GETTER_METHOD_PREFIX;
 import static org.freshworks.Constants.JsonTypeInfo_As_PROPERTY;
 
-/**
- * Hello world!
- *
- */
-public class App 
-{
+public class Processor {
 
     HashMap<String, String> redis = new HashMap<>();
     Multimap<String, String> connectorConfigItemTable;
 
-
-
-    public static void main( String[] args ) throws IOException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException, ClassNotFoundException, NoSuchFieldException {
-
-        ArrayList<HashMap<String, String>> connectorConfig = new ArrayList<>();
-        HashMap<String, String> x = new HashMap<>();
-        x.put("org.freshworks.connectors.box", "org.freshworks.configitems.box");
-        connectorConfig.add(x);
-//        x = new HashMap<>();
-//        x.put("org.freshworks.connectors.onelogin", "org.freshworks.configitems.onelogin");
-//        connectorConfig.add(x);
-
-        App app = new App();
-        ScanConnector scanConnector = new ScanConnector();
-        HashMap<String, TreeNode<String>> dagMap = scanConnector.scanner(connectorConfig);
-        ScanConfigItem scanConfigItem = new ScanConfigItem();
-        app.connectorConfigItemTable = scanConfigItem.scanner(connectorConfig,dagMap);
-
-        app.consume();
+    public Processor(Multimap<String, String> connectorConfigItemTable){
+        this.connectorConfigItemTable = connectorConfigItemTable;
     }
+    public void process() throws IOException, InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException, ClassNotFoundException, NoSuchFieldException {
 
-    public void consume() throws IOException, InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException, ClassNotFoundException, NoSuchFieldException {
 
         ObjectMapper objectMapper = new ObjectMapper();
 
@@ -201,21 +176,4 @@ public class App
         }
 
     }
-
-
-    public void test(){
-
-        TreeNode<String> application = new ArrayMultiTreeNode<>("Application");
-        TreeNode<String> user = new ArrayMultiTreeNode<>("User");
-        TreeNode<String> usage = new ArrayMultiTreeNode<>("Usage");
-
-        application.add(user);
-        application.add(usage);
-
-        System.out.println(user.root().data());
-        System.out.println(user.commonAncestor(usage));
-
-
-    }
-
 }

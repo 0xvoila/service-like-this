@@ -24,4 +24,5 @@ import static org.freshworks.Constants.JsonTypeInfo_As_PROPERTY;
 })
 public interface BaseConnector {
 
+
 }

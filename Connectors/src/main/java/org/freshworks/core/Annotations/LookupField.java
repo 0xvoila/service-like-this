@@ -1,4 +1,4 @@
-package org.freshworks.core.main;
+package org.freshworks.core.Annotations;
 
 
 import java.lang.annotation.*;
