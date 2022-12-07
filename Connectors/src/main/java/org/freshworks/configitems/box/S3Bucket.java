@@ -12,7 +12,7 @@ public class S3Bucket extends BaseConfigItem {
         return id;
     }
 
-    public void setId(User user) {
-        this.id = user.getId();
+    public void setId(Application application) {
+        this.id = application.getId();
     }
 }

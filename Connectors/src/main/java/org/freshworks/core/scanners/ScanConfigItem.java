@@ -13,6 +13,7 @@ import org.reflections.util.FilterBuilder;
 import java.lang.reflect.Method;
 import java.util.*;
 
+import static org.freshworks.Constants.DAG_MAX_HEIGHT;
 import static org.reflections.scanners.Scanners.SubTypes;
 import static org.reflections.util.ReflectionUtilsPredicates.withNamePrefix;
 
@@ -64,12 +65,13 @@ public class ScanConfigItem {
 
         Iterator<Class<?>> it  = u.iterator();
 
+        int nodeHeight = DAG_MAX_HEIGHT;
         while(it.hasNext()){
             String x = it.next().getName();
             TreeNode<String> n = DAG.find(x);
-            if (n != null && n.isLeaf()){
-
+            if (n != null && n.height() <= nodeHeight){
                 dependents.add(x);
+                nodeHeight = n.height();
             }
         }
         return dependents;
