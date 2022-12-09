@@ -32,7 +32,7 @@ public class BoxFaker {
 
         Usage usage = new Usage(app);
         usage.setUsage(faker.name().fullName());
-        usage.setLogin("abc");
+        usage.setLogin(Integer.toString(faker.number().numberBetween(0,100)));
         usage.setId(faker.name().fullName());
         DiscoveryObject discoveryObject = new DiscoveryObject(Usage.class.getPackage().getName(), usage);
         ObjectMapper objectMapper = new ObjectMapper();
@@ -50,7 +50,7 @@ public class BoxFaker {
 
 
         User user = new User(app);
-        user.setId("abc");
+        user.setId(Integer.toString(faker.number().numberBetween(0,100)));
         user.setName(faker.name().fullName());
         user.setAddress(faker.address().fullAddress());
         user.setAvatar_url(faker.animal().name());
