@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Multimap;
-import org.freshworks.core.Annotations.LookupField;
+import org.freshworks.core.Annotations.FreshworksLookup;
 import org.freshworks.core.utils.Utility;
 import org.freshworks.faker.BoxFaker;
 
@@ -43,7 +43,6 @@ public class Processor {
                     Class<?> configItemClass =  Class.forName(configItem);
                     List<Method> setterMethods = Utility.getAllSetters(configItemClass);
                     Object configItemClassObject = configItemClass.newInstance();
-                    LookupField lookupField = configItemClass.getAnnotation(LookupField.class);
                     HashMap<String, Object> unwrappedStepClassMap = unwrappedMainStepToClassMap(unwrappedStepsOfMainStep);
                     for (Method method: setterMethods) {
                         Class<?> [] configItemMethodParameterList = method.getParameterTypes();
@@ -53,11 +52,12 @@ public class Processor {
                 }
                 else if (!isConfigItemDependOnSingleStep(configItemStepDependencyList) && isConfigItemDependOnThisStep(configItemStepDependencyList,mainStepPathAsString)){
 //                    Check if dependency List objects are present in the redis or not
-
+                    Class<?> configItemClass =  Class.forName(configItem);
+                    FreshworksLookup freshworksLookup = configItemClass.getAnnotation(FreshworksLookup.class);
                     Object mainStepClassObject = objectMapper.readValue(mainStepObjectAsString, Class.forName(mainStepPathAsString));
                     Class<?> mainStepClass = Class.forName(mainStepPathAsString);
-                    Method getterMethod = mainStepClass.getDeclaredMethod(GETTER_METHOD_PREFIX + "id".substring(0, 1).toUpperCase()
-                            + "id".substring(1));
+                    Method getterMethod = mainStepClass.getDeclaredMethod(GETTER_METHOD_PREFIX + getLookupField(mainStepClass, freshworksLookup).substring(0, 1).toUpperCase()
+                            + getLookupField(mainStepClass, freshworksLookup).substring(1));
                     Object fieldValue = getterMethod.invoke(mainStepClassObject);
                     redis.put(mainStepPathAsString + "_" + fieldValue,mainStepObjectAsString);
 
@@ -76,7 +76,6 @@ public class Processor {
                     }
 
                     if(found){
-                        Class<?> configItemClass =  Class.forName(configItem);
                         List<Method> setterMethods = Utility.getAllSetters(configItemClass);
                         Object configItemClassObject = configItemClass.newInstance();
                         unwrappedStepsOfMainStep = new ArrayList<>();
@@ -101,6 +100,17 @@ public class Processor {
         }
     }
 
+
+    public String getLookupField(Class<?> masterClass, FreshworksLookup freshworksLookup){
+
+        String className = masterClass.getName();
+        if ( freshworksLookup.leftClass().getName().equals(className)){
+            return freshworksLookup.leftClassField();
+        }
+        else {
+            return freshworksLookup.rightClassField();
+        }
+    }
 
     public ArrayList<String> unwrapMainStep(String mainStepObjectAsString) throws IOException {
         ArrayList<String> unwrappedMainStepAsString = new ArrayList<>();

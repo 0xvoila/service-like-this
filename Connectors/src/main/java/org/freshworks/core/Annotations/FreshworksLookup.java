@@ -4,10 +4,10 @@ package org.freshworks.core.Annotations;
 import java.lang.annotation.*;
 
 @Documented
-@Target(ElementType.METHOD)
+@Target(ElementType.TYPE)
 @Inherited
 @Retention(RetentionPolicy.RUNTIME)
-public @interface LookupField {
+public @interface FreshworksLookup {
     Class<?> leftClass();
     String leftClassField();
 

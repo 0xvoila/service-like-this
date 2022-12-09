@@ -33,7 +33,7 @@ public class BoxFaker {
         Usage usage = new Usage(app);
         usage.setUsage(faker.name().fullName());
         usage.setLogin("abc");
-        usage.setId("abc");
+        usage.setId(faker.name().fullName());
         DiscoveryObject discoveryObject = new DiscoveryObject(Usage.class.getPackage().getName(), usage);
         ObjectMapper objectMapper = new ObjectMapper();
         return objectMapper.writeValueAsString(discoveryObject);

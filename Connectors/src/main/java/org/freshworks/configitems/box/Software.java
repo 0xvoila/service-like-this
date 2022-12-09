@@ -4,8 +4,9 @@ import config_items.BaseConfigItem;
 import org.freshworks.connectors.box.Application;
 import org.freshworks.connectors.box.Usage;
 import org.freshworks.connectors.box.User;
-import org.freshworks.core.Annotations.LookupField;
+import org.freshworks.core.Annotations.FreshworksLookup;
 
+@FreshworksLookup(leftClass = User.class, rightClass = Usage.class, leftClassField = "id", rightClassField = "login", join_type = "inner")
 public class Software extends BaseConfigItem {
 
     String id;
@@ -48,7 +49,6 @@ public class Software extends BaseConfigItem {
         return usage;
     }
 
-    @LookupField(leftClass = User.class, rightClass = Usage.class, leftClassField = "id", rightClassField = "login", join_type = "inner")
     public void setUsage(Usage usage, User user) {
         this.usage = user.getAddress() + " / " + usage.getUsage();
     }
