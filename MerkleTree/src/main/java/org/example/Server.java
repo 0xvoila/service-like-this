@@ -11,17 +11,18 @@ import org.checkerframework.checker.units.qual.A;
 import org.example.Record;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class Server extends AbstractVerticle {
 
-    static ArrayList<Integer> backendServers = new ArrayList<>();
+    static HashMap<String, Integer> backendServers = new HashMap<>();
 
     public static void main(String args[]) {
 
         Vertx vertx = Vertx.vertx();
         vertx.deployVerticle(new Server());
-        backendServers.add(6000);
-        backendServers.add(6001);
+        backendServers.put("a",7000);
+        backendServers.put("b",7001);
     }
 
     @Override
@@ -38,14 +39,15 @@ public class Server extends AbstractVerticle {
             MultiMap queryParams = context.queryParams();
             String key = queryParams.contains("key") ? queryParams.get("key") : "0";
             String value = queryParams.contains("value") ? queryParams.get("value") : "unknown";
+            String server = queryParams.contains("server") ? queryParams.get("server") : "a";
 
-            int rnd = (int)(Math.random()*backendServers.size());
-            ManagedChannelBuilder<?> channelBuilder = ManagedChannelBuilder.forAddress("127.0.0.1", backendServers.get(rnd)).usePlaintext();
-            Channel channel = channelBuilder.build();
-            org.example.DatabaseGrpcServiceGrpc.DatabaseGrpcServiceBlockingStub blockingStub = org.example.DatabaseGrpcServiceGrpc.newBlockingStub(channel);
-            Record req = Record.newBuilder().setKey(Integer.parseInt(key)).setValue(value).build();
-            blockingStub.createRecord(req);
-//            database.insert(Integer.parseInt(key), value);
+            if ( !key.equals("0")){
+                ManagedChannelBuilder<?> channelBuilder = ManagedChannelBuilder.forAddress("127.0.0.1", backendServers.get(server)).usePlaintext();
+                Channel channel = channelBuilder.build();
+                org.example.DatabaseGrpcServiceGrpc.DatabaseGrpcServiceBlockingStub blockingStub = org.example.DatabaseGrpcServiceGrpc.newBlockingStub(channel);
+                Record req = Record.newBuilder().setKey(Integer.parseInt(key)).setValue(value).build();
+                blockingStub.createRecord(req);
+            }
 
             context.json(
                     new JsonObject()

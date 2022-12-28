@@ -12,23 +12,21 @@ import java.util.*;
 public class Database {
 
     final static int PAGE_SIZE = 10;
-    TreeMap<Integer, String> DB = new TreeMap<>();
+    static TreeMap<Integer, String> DB = new TreeMap<>();
 
-    TreeNode<String> merkleRoot = null;
+    static TreeNode<String> merkleRoot = null;
 
-    int FLOOR_TOKEN = 0;
-    int CEILING_TOKEN = 10;
+    static int FLOOR_TOKEN = 0;
+    static int CEILING_TOKEN = 3;
 
-    io.grpc.Server server;
+    static io.grpc.Server server;
 
-    static Database database;
 
 
     public static void main(String args[]) throws IOException, InterruptedException {
 
-        database = new Database();
-        database.start(Integer.parseInt(args[0]), Integer.parseInt(args[1]));
-        database.server.awaitTermination();
+        start(Integer.parseInt(args[0]), Integer.parseInt(args[1]));
+        server.awaitTermination();
 
 //        database.insert(1,"A");
 //        database.insert(2,"B");
@@ -50,24 +48,26 @@ public class Database {
         DB.put(key, value);
     }
 
-    public ArrayList<TreeNode<String>> prepareMerkle(){
+    public static ArrayList<TreeNode<String>> prepareMerkle(){
         ArrayList<TreeNode<String>> newNodes = new ArrayList<>();
-        for(int i = 0; i< DB.size(); i++){
+        for(int i = FLOOR_TOKEN; i < CEILING_TOKEN; i++){
             String value = DB.get(i);
+
             if ( value != null){
                 newNodes.add(new ArrayMultiTreeNode<>(value));
             }
             else {
-                newNodes.add(new ArrayMultiTreeNode<>(""));
+                newNodes.add(new ArrayMultiTreeNode<>("^"));
             }
         }
+
 
         return newNodes;
     }
 
 //    Run it every 2 second to create a new Merkle
 
-    public TreeNode<String> createMerkle (ArrayList<TreeNode<String>> levelNNodesList){
+    public static TreeNode<String> createMerkle (ArrayList<TreeNode<String>> levelNNodesList){
 
         ArrayList<TreeNode<String>> newNodes = new ArrayList<>();
 
@@ -104,11 +104,34 @@ public class Database {
         }
     }
 
-    public void auditMerkle(TreeNode<String> m1, TreeNode<String> m2){
+    public static void auditMerkleV2(TreeNode<String> m1, TreeNode<String> m2){
+
+        ArrayList<TreeNode<String>> m1List = (ArrayList<TreeNode<String>>) m1.preOrdered();
+        ArrayList<TreeNode<String>> m2List = (ArrayList<TreeNode<String>>) m2.preOrdered();
+
+        int i=0;
+        while( i < m1List.size()){
+            if(m1List.get(i).equals(m2List.get(i)) && m1List.get(i).isRoot()){
+                System.out.println("Whole tree is in sync");
+                break;
+            }
+            else if(m1List.get(i).equals(m2List.get(i)) && !m1List.get(i).isRoot()){
+
+
+            }
+        }
+
+    }
+    public static void auditMerkle(TreeNode<String> m1, TreeNode<String> m2){
+
+        if ( m1 == null && m2 == null){
+            return;
+        }
 
         if(m1.data().equals(m2.data())){
             return;
         }
+
         else {
             Iterator<TreeNode<String>> x = m1.iterator();
             Iterator<TreeNode<String>> y = m2.iterator();
@@ -117,9 +140,10 @@ public class Database {
                 TreeNode<String> yy = y.next();
                 if (xx.isLeaf() && yy.isLeaf()){
                     System.out.println("data to sync is " + xx.data());
+                    auditMerkle(null, null);
                 }
                 else{
-                    auditMerkle(x.next(),y.next());
+                    auditMerkle(xx,yy);
                 }
 
             }
@@ -127,7 +151,7 @@ public class Database {
         }
     }
 
-    public void start(int serverPort, int clientPort ) throws IOException {
+    public static void start(int serverPort, int clientPort ) throws IOException {
         server = Grpc.newServerBuilderForPort(serverPort, InsecureServerCredentials.create()).addService(new DatabaseService())
                 .build();
 
@@ -142,7 +166,7 @@ public class Database {
 
         @Override
         public void createRecord(org.example.Record request, StreamObserver<org.example.Record> responseObserver) {
-            database.DB.put(request.getKey(), request.getValue());
+            DB.put(request.getKey(), request.getValue());
             responseObserver.onNext(request);
             responseObserver.onCompleted();
         }
@@ -151,15 +175,12 @@ public class Database {
         public void getMerkle(org.example.Empty request,
                               io.grpc.stub.StreamObserver<org.example.MerkleTree> responseObserver){
             org.example.MerkleTree.Builder merkleTree = org.example.MerkleTree.newBuilder();
-            ArrayList<TreeNode<String>> leafNodeHashList = database.prepareMerkle();
-            database.merkleRoot = database.createMerkle(leafNodeHashList);
-            Iterator<TreeNode<String>> iterator = database.merkleRoot.iterator();
+            ArrayList<TreeNode<String>> leafNodeHashList = prepareMerkle();
+            merkleRoot = createMerkle(leafNodeHashList);
+            Iterator<TreeNode<String>> iterator = merkleRoot.iterator();
             while (iterator.hasNext()) {
                 TreeNode<String> node = iterator.next();
                 merkleTree.addNodeValue(node.data());
-                if(node.isLeaf()){
-                    merkleTree.addNodeValue("#");
-                }
             }
             responseObserver.onNext(merkleTree.build());
             responseObserver.onCompleted();
@@ -183,9 +204,9 @@ public class Database {
             org.example.MerkleTree merkleTree = blockingStub.getMerkle(empty);
             if(merkleTree.getNodeValueList().size() > 0){
                 TreeNode<String> replicaMerkle = deserialize(merkleTree.getNodeValueList(), 0);
-                ArrayList<TreeNode<String>> leafNodeHashList = database.prepareMerkle();
-                database.merkleRoot = database.createMerkle(leafNodeHashList);
-                database.auditMerkle(database.merkleRoot, replicaMerkle);
+                ArrayList<TreeNode<String>> leafNodeHashList = prepareMerkle();
+                merkleRoot = createMerkle(leafNodeHashList);
+                auditMerkle(merkleRoot, replicaMerkle);
             }
             else{
                 System.out.println("No data to replicate");
@@ -195,13 +216,14 @@ public class Database {
 
 
         private TreeNode<String> deserialize(List<String> values, int index){
+
             String val = values.get(index);
 
+            index = index + 1;
             if (val.equals("#")) return null;
 
             TreeNode<String> root = new ArrayMultiTreeNode<String>(val);
-            root.add(deserialize(values, index + 1));
-            root.add(deserialize(values, index + 1));
+            root.add(deserialize(values, index));
             return root;
         }
     }
