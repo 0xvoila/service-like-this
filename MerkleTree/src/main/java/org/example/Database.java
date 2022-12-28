@@ -14,7 +14,7 @@ public class Database {
     final static int PAGE_SIZE = 10;
     static TreeMap<Integer, String> DB = new TreeMap<>();
 
-    static TreeNode<String> merkleRoot = null;
+    static MerkleTreeV3.Node<String> merkleRoot = null;
 
     static int FLOOR_TOKEN = 0;
     static int CEILING_TOKEN = 3;
@@ -48,16 +48,16 @@ public class Database {
         DB.put(key, value);
     }
 
-    public static ArrayList<TreeNode<String>> prepareMerkle(){
-        ArrayList<TreeNode<String>> newNodes = new ArrayList<>();
+    public static ArrayList<MerkleTreeV3.Node<String>> prepareMerkle(){
+        ArrayList<MerkleTreeV3.Node<String>> newNodes = new ArrayList<>();
         for(int i = FLOOR_TOKEN; i < CEILING_TOKEN; i++){
             String value = DB.get(i);
 
             if ( value != null){
-                newNodes.add(new ArrayMultiTreeNode<>(value));
+                newNodes.add(new MerkleTreeV3.Node<String>(value.hashCode()));
             }
             else {
-                newNodes.add(new ArrayMultiTreeNode<>("^"));
+                newNodes.add(new MerkleTreeV3.Node<String>("".hashCode()));
             }
         }
 
@@ -67,41 +67,18 @@ public class Database {
 
 //    Run it every 2 second to create a new Merkle
 
-    public static TreeNode<String> createMerkle (ArrayList<TreeNode<String>> levelNNodesList){
+    public static MerkleTreeV3.Node<String> createMerkle (ArrayList<MerkleTreeV3.Node<String>> levelNNodesList){
 
-        ArrayList<TreeNode<String>> newNodes = new ArrayList<>();
+        return  new MerkleTreeV3<String>().createFrom(levelNNodesList);
 
-        if(levelNNodesList.size() == 0 ){
-            return new ArrayMultiTreeNode<>("");
-        }
-
-        if(levelNNodesList.size() == 1){
-            return levelNNodesList.get(0);
-        }
-
-//        if it is odd then replicate the last node with itself to make it even
-        if(levelNNodesList.size()%2 != 0){
-            levelNNodesList.add(new ArrayMultiTreeNode<>(levelNNodesList.get(levelNNodesList.size() - 1).data()));
-        }
-
-        for(int i=0; i < levelNNodesList.size(); i= i + 2){
-
-            TreeNode<String> t = new ArrayMultiTreeNode<>(levelNNodesList.get(i).data() + levelNNodesList.get(i+1).data());
-            newNodes.add(t);
-            t.add(levelNNodesList.get(i));
-            t.add(levelNNodesList.get(i + 1));
-
-        }
-
-        return createMerkle(newNodes);
     }
 
     public void printMerkle(){
 
         // Iterating over the tree elements using foreach
-        for (TreeNode<String> node : merkleRoot) {
-            System.out.println(node.data()); // any other action goes here
-        }
+//        for (TreeNode<String> node : merkleRoot) {
+//            System.out.println(node.data()); // any other action goes here
+//        }
     }
 
     public static void auditMerkleV2(TreeNode<String> m1, TreeNode<String> m2){
@@ -175,13 +152,10 @@ public class Database {
         public void getMerkle(org.example.Empty request,
                               io.grpc.stub.StreamObserver<org.example.MerkleTree> responseObserver){
             org.example.MerkleTree.Builder merkleTree = org.example.MerkleTree.newBuilder();
-            ArrayList<TreeNode<String>> leafNodeHashList = prepareMerkle();
+            ArrayList<MerkleTreeV3.Node<String>> leafNodeHashList = prepareMerkle();
             merkleRoot = createMerkle(leafNodeHashList);
-            Iterator<TreeNode<String>> iterator = merkleRoot.iterator();
-            while (iterator.hasNext()) {
-                TreeNode<String> node = iterator.next();
-                merkleTree.addNodeValue(node.data());
-            }
+            String s = new MerkleTreeV3<String>().serialize(merkleRoot);
+            merkleTree.setNode(s);
             responseObserver.onNext(merkleTree.build());
             responseObserver.onCompleted();
 
@@ -202,29 +176,11 @@ public class Database {
             org.example.DatabaseGrpcServiceGrpc.DatabaseGrpcServiceBlockingStub blockingStub = org.example.DatabaseGrpcServiceGrpc.newBlockingStub(channel);
             org.example.Empty empty = org.example.Empty.newBuilder().build();
             org.example.MerkleTree merkleTree = blockingStub.getMerkle(empty);
-            if(merkleTree.getNodeValueList().size() > 0){
-                TreeNode<String> replicaMerkle = deserialize(merkleTree.getNodeValueList(), 0);
-                ArrayList<TreeNode<String>> leafNodeHashList = prepareMerkle();
-                merkleRoot = createMerkle(leafNodeHashList);
-                auditMerkle(merkleRoot, replicaMerkle);
-            }
-            else{
-                System.out.println("No data to replicate");
-            }
 
-        }
-
-
-        private TreeNode<String> deserialize(List<String> values, int index){
-
-            String val = values.get(index);
-
-            index = index + 1;
-            if (val.equals("#")) return null;
-
-            TreeNode<String> root = new ArrayMultiTreeNode<String>(val);
-            root.add(deserialize(values, index));
-            return root;
+            MerkleTreeV3.Node<String> replicaMerkle = new MerkleTreeV3<String>().deSerialize(merkleTree.getNode());
+            ArrayList<MerkleTreeV3.Node<String>> leafNodeHashList = prepareMerkle();
+            merkleRoot = createMerkle(leafNodeHashList);
+            auditMerkle(merkleRoot, replicaMerkle);
         }
     }
 }

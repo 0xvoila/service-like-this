@@ -1,5 +1,6 @@
 package org.example;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
@@ -89,7 +90,7 @@ public class MerkleTreeV3<T>{
         }
 
 
-        public Node<T> createFrom(ArrayList<Node<T>> sortedNodeList){
+        public  Node<T> createFrom(ArrayList<Node<T>> sortedNodeList){
 
             ArrayList<MerkleTreeV3.Node<T>> newNodes = new ArrayList<>();
 
@@ -138,7 +139,7 @@ public class MerkleTreeV3<T>{
             return null;
         }
 
-        private ArrayList<Node<T>> _serialize(Node<T> rootNode, ArrayList<Node<T>> preOrderList){
+        private  ArrayList<Node<T>> _serialize(Node<T> rootNode, ArrayList<Node<T>> preOrderList){
 
             if(rootNode == null){
                 preOrderList.add(new Node<>(0));
@@ -153,15 +154,24 @@ public class MerkleTreeV3<T>{
             return preOrderList;
         }
 
-        public Node<T> deSerialize(ArrayList<Node<T>> preOrderedList){
+        public  Node<T> deSerialize(String str){
 
-            Node<T> rootNode = new Node<>();
+            try{
+                TypeReference<ArrayList<Node<T>>> typeRef = new TypeReference<ArrayList<Node<T>>>() {};
+                ArrayList<Node<T>> preOrderedList = objectMapper.readValue(str, typeRef);
 
-            for (Node<T> tNode : preOrderedList) {
-                rootNode = _deserialize(tNode);
+                Node<T> rootNode = new Node<>();
+
+                for (Node<T> tNode : preOrderedList) {
+                    rootNode = _deserialize(tNode);
+                }
+
+                return rootNode;
             }
-
-            return rootNode;
+            catch(Exception exception){
+                System.out.println(exception.getMessage());
+            }
+            return null;
         }
 
         public Node<T> _deserialize(Node<T> node){

@@ -17,7 +17,7 @@ message Record{
 }
 
 message MerkleTree{
-  repeated string nodeValue = 1;
+  string node = 1;
 }
 
 message Empty{
