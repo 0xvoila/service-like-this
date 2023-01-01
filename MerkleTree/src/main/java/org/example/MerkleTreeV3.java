@@ -186,22 +186,24 @@ public class MerkleTreeV3<T>{
             return null;
         }
 
-        public void auditMerkle(Node<T> m1, Node<T> m2){
+        public ArrayList<Node<T>> auditMerkle(Node<T> m1, Node<T> m2, ArrayList<Node<T>> diffList){
 
             if ( m1 == null && m2 == null){
-                return;
+                return null;
             }
 
             if(m1.getHash() == m2.getHash()){
-                return;
+                return null;
             }
 
             if (m1.isLeaf() && m2.isLeaf()){
-                System.out.println("Need to exchange these nodes " + m1.getData());
+                diffList.add(m1);
             }
 
-            auditMerkle(m1.leftNode, m2.leftNode);
-            auditMerkle(m1.rightNode, m2.rightNode);
+            auditMerkle(m1.leftNode, m2.leftNode, diffList);
+            auditMerkle(m1.rightNode, m2.rightNode, diffList);
+
+            return diffList;
         }
 
         public static void main(String args[]) throws JsonProcessingException {

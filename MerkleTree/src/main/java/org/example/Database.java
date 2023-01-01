@@ -1,6 +1,8 @@
 package org.example;
 
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.scalified.tree.TreeNode;
 import com.scalified.tree.multinode.ArrayMultiTreeNode;
 import io.grpc.*;
@@ -150,7 +152,13 @@ public class Database {
             MerkleTreeV3.Node<HashMap<String, String>> replicaMerkle = new MerkleTreeV3<HashMap<String, String>>().deSerialize(merkleTree.getNode());
             ArrayList<MerkleTreeV3.Node<HashMap<String, String>>> leafNodeHashList = prepareMerkle();
             merkleRoot = createMerkle(leafNodeHashList);
-            new MerkleTreeV3<HashMap<String, String>>().auditMerkle(merkleRoot, replicaMerkle);
+            ArrayList<MerkleTreeV3.Node<HashMap<String, String>>> diffList = new MerkleTreeV3<HashMap<String, String>>().auditMerkle(merkleRoot, replicaMerkle, new ArrayList<MerkleTreeV3.Node<HashMap<String, String>>>());
+
+            try {
+                System.out.println(new ObjectMapper().writeValueAsString(diffList));
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 }
