@@ -14,10 +14,10 @@ public class Database {
     final static int PAGE_SIZE = 10;
     static TreeMap<Integer, String> DB = new TreeMap<>();
 
-    static MerkleTreeV3.Node<String> merkleRoot = null;
+    static MerkleTreeV3.Node<HashMap<String, String>> merkleRoot = null;
 
-    static int FLOOR_TOKEN = 0;
-    static int CEILING_TOKEN = 3;
+    static int FLOOR_TOKEN = -1000;
+    static int CEILING_TOKEN = 1000;
 
     static io.grpc.Server server;
 
@@ -48,17 +48,28 @@ public class Database {
         DB.put(key, value);
     }
 
-    public static ArrayList<MerkleTreeV3.Node<String>> prepareMerkle(){
-        ArrayList<MerkleTreeV3.Node<String>> newNodes = new ArrayList<>();
+    public static ArrayList<MerkleTreeV3.Node<HashMap<String, String>>> prepareMerkle(){
+        ArrayList<MerkleTreeV3.Node<HashMap<String, String>>> newNodes = new ArrayList<>();
         for(int i = FLOOR_TOKEN; i < CEILING_TOKEN; i++){
             String value = DB.get(i);
 
             if ( value != null){
-                newNodes.add(new MerkleTreeV3.Node<String>(value.hashCode()));
+                MerkleTreeV3.Node<HashMap<String, String>> n = new MerkleTreeV3.Node<HashMap<String, String>>(value.hashCode());
+                HashMap<String, String> data = new HashMap<>();
+                data.put("key", Integer.toString(i));
+                data.put("value", value);
+                n.setData(data);
+                newNodes.add(n);
             }
             else {
-                newNodes.add(new MerkleTreeV3.Node<String>("".hashCode()));
+                MerkleTreeV3.Node<HashMap<String, String>> n = new MerkleTreeV3.Node<HashMap<String, String>>("EMPTY".hashCode());
+                HashMap<String, String> data = new HashMap<>();
+                data.put("key", Integer.toString(i));
+                data.put("value", "EMPTY");
+                n.setData(data);
+                newNodes.add(n);
             }
+
         }
 
 
@@ -67,9 +78,9 @@ public class Database {
 
 //    Run it every 2 second to create a new Merkle
 
-    public static MerkleTreeV3.Node<String> createMerkle (ArrayList<MerkleTreeV3.Node<String>> levelNNodesList){
+    public static MerkleTreeV3.Node<HashMap<String, String>> createMerkle (ArrayList<MerkleTreeV3.Node<HashMap<String, String>>> levelNNodesList){
 
-        return  new MerkleTreeV3<String>().createFrom(levelNNodesList);
+        return  new MerkleTreeV3<HashMap<String, String>>().createFrom(levelNNodesList);
 
     }
 
@@ -81,52 +92,6 @@ public class Database {
 //        }
     }
 
-    public static void auditMerkleV2(TreeNode<String> m1, TreeNode<String> m2){
-
-        ArrayList<TreeNode<String>> m1List = (ArrayList<TreeNode<String>>) m1.preOrdered();
-        ArrayList<TreeNode<String>> m2List = (ArrayList<TreeNode<String>>) m2.preOrdered();
-
-        int i=0;
-        while( i < m1List.size()){
-            if(m1List.get(i).equals(m2List.get(i)) && m1List.get(i).isRoot()){
-                System.out.println("Whole tree is in sync");
-                break;
-            }
-            else if(m1List.get(i).equals(m2List.get(i)) && !m1List.get(i).isRoot()){
-
-
-            }
-        }
-
-    }
-    public static void auditMerkle(TreeNode<String> m1, TreeNode<String> m2){
-
-        if ( m1 == null && m2 == null){
-            return;
-        }
-
-        if(m1.data().equals(m2.data())){
-            return;
-        }
-
-        else {
-            Iterator<TreeNode<String>> x = m1.iterator();
-            Iterator<TreeNode<String>> y = m2.iterator();
-            while(x.hasNext() && y.hasNext()){
-                TreeNode<String> xx = x.next();
-                TreeNode<String> yy = y.next();
-                if (xx.isLeaf() && yy.isLeaf()){
-                    System.out.println("data to sync is " + xx.data());
-                    auditMerkle(null, null);
-                }
-                else{
-                    auditMerkle(xx,yy);
-                }
-
-            }
-
-        }
-    }
 
     public static void start(int serverPort, int clientPort ) throws IOException {
         server = Grpc.newServerBuilderForPort(serverPort, InsecureServerCredentials.create()).addService(new DatabaseService())
@@ -152,13 +117,18 @@ public class Database {
         public void getMerkle(org.example.Empty request,
                               io.grpc.stub.StreamObserver<org.example.MerkleTree> responseObserver){
             org.example.MerkleTree.Builder merkleTree = org.example.MerkleTree.newBuilder();
-            ArrayList<MerkleTreeV3.Node<String>> leafNodeHashList = prepareMerkle();
+            ArrayList<MerkleTreeV3.Node<HashMap<String, String>>> leafNodeHashList = prepareMerkle();
             merkleRoot = createMerkle(leafNodeHashList);
-            String s = new MerkleTreeV3<String>().serialize(merkleRoot);
-            merkleTree.setNode(s);
+            try{
+                String s = new MerkleTreeV3<HashMap<String, String>>().serialize(merkleRoot);
+                merkleTree.setNode(s);
+            }
+            catch(Exception e){
+                System.out.println(e.getMessage());
+            }
+
             responseObserver.onNext(merkleTree.build());
             responseObserver.onCompleted();
-
         }
     }
 
@@ -177,10 +147,10 @@ public class Database {
             org.example.Empty empty = org.example.Empty.newBuilder().build();
             org.example.MerkleTree merkleTree = blockingStub.getMerkle(empty);
 
-            MerkleTreeV3.Node<String> replicaMerkle = new MerkleTreeV3<String>().deSerialize(merkleTree.getNode());
-            ArrayList<MerkleTreeV3.Node<String>> leafNodeHashList = prepareMerkle();
+            MerkleTreeV3.Node<HashMap<String, String>> replicaMerkle = new MerkleTreeV3<HashMap<String, String>>().deSerialize(merkleTree.getNode());
+            ArrayList<MerkleTreeV3.Node<HashMap<String, String>>> leafNodeHashList = prepareMerkle();
             merkleRoot = createMerkle(leafNodeHashList);
-            auditMerkle(merkleRoot, replicaMerkle);
+            new MerkleTreeV3<HashMap<String, String>>().auditMerkle(merkleRoot, replicaMerkle);
         }
     }
 }

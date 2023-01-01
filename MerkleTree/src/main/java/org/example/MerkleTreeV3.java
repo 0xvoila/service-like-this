@@ -1,5 +1,7 @@
 package org.example;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -14,9 +16,14 @@ public class MerkleTreeV3<T>{
 
             T data;
             long hash;
+
+            @JsonIgnore
             Node<T> leftNode;
+
+            @JsonIgnore
             Node<T> rightNode;
 
+            @JsonIgnore
             Node<T> parentNode;
 
             public Node(){
@@ -61,6 +68,7 @@ public class MerkleTreeV3<T>{
                 this.rightNode = rightNode;
             }
 
+            @JsonIgnore
             public Boolean isLeaf(){
                 if (this.leftNode == null && this.rightNode == null){
                     return true;
@@ -70,6 +78,7 @@ public class MerkleTreeV3<T>{
                 }
             }
 
+            @JsonIgnore
             public Boolean isRoot(){
 
                 if (this.parentNode == null){
@@ -80,10 +89,12 @@ public class MerkleTreeV3<T>{
                 }
             }
 
+            @JsonIgnore
             public Node<T> getParentNode() {
                 return parentNode;
             }
 
+            @JsonIgnore
             public void setParentNode(Node<T> parentNode) {
                 this.parentNode = parentNode;
             }
@@ -124,34 +135,28 @@ public class MerkleTreeV3<T>{
             return createFrom(newNodes);
         }
 
-        public String serialize(Node<T> rootNode) {
+        public String serialize(Node<T> rootNode) throws JsonProcessingException {
 
-            ArrayList<Node<T>> preOrderedList;
+            ArrayList<Node<T>> preOrderedList = new ArrayList<>();
+            preOrderedList.add(rootNode);
 
-            try{
-                preOrderedList = _serialize(rootNode, new ArrayList<>());
-                return objectMapper.writeValueAsString(preOrderedList);
-            }
-            catch (Exception e){
-                System.out.println(e.getMessage());
-            }
+            int i = 0;
+            while (i != preOrderedList.size()) {
 
-            return null;
-        }
+                if (preOrderedList.get(i).leftNode != null) {
+                    preOrderedList.add(preOrderedList.get(i).leftNode);
+                }
+                if (preOrderedList.get(i).rightNode != null) {
+                    preOrderedList.add(preOrderedList.get(i).rightNode);
+                }
 
-        private  ArrayList<Node<T>> _serialize(Node<T> rootNode, ArrayList<Node<T>> preOrderList){
-
-            if(rootNode == null){
-                preOrderList.add(new Node<>(0));
-                return null;
-            }
-            else {
-                preOrderList.add(rootNode);
-                _serialize(rootNode.leftNode , preOrderList);
-                _serialize(rootNode.rightNode , preOrderList);
+                i = i + 1;
             }
 
-            return preOrderList;
+            String s = objectMapper.writeValueAsString(preOrderedList);
+//            System.out.println(s);
+
+            return s;
         }
 
         public  Node<T> deSerialize(String str){
@@ -160,13 +165,20 @@ public class MerkleTreeV3<T>{
                 TypeReference<ArrayList<Node<T>>> typeRef = new TypeReference<ArrayList<Node<T>>>() {};
                 ArrayList<Node<T>> preOrderedList = objectMapper.readValue(str, typeRef);
 
-                Node<T> rootNode = new Node<>();
+                int i = 0;
+                while (i != preOrderedList.size()) {
 
-                for (Node<T> tNode : preOrderedList) {
-                    rootNode = _deserialize(tNode);
+                    if(2*i + 1 < preOrderedList.size()){
+                        preOrderedList.get(i).leftNode = preOrderedList.get(2*i + 1);
+                    }
+                    if (2 * i + 2 < preOrderedList.size()){
+                        preOrderedList.get(i).rightNode = preOrderedList.get(2*i + 2);
+                    }
+
+                    i = i + 1;
                 }
 
-                return rootNode;
+                return preOrderedList.get(0);
             }
             catch(Exception exception){
                 System.out.println(exception.getMessage());
@@ -174,15 +186,44 @@ public class MerkleTreeV3<T>{
             return null;
         }
 
-        public Node<T> _deserialize(Node<T> node){
+        public void auditMerkle(Node<T> m1, Node<T> m2){
 
-            if (node.getHash() == 0){
-                return null;
+            if ( m1 == null && m2 == null){
+                return;
             }
-            else{
-                node.leftNode = _deserialize(node.leftNode);
-                node.rightNode = _deserialize(node.rightNode);
+
+            if(m1.getHash() == m2.getHash()){
+                return;
             }
-            return node;
+
+            if (m1.isLeaf() && m2.isLeaf()){
+                System.out.println("Need to exchange these nodes " + m1.getData());
+            }
+
+            auditMerkle(m1.leftNode, m2.leftNode);
+            auditMerkle(m1.rightNode, m2.rightNode);
+        }
+
+        public static void main(String args[]) throws JsonProcessingException {
+
+            Node<String> n1 = new Node<>(1);
+            Node<String> n2 = new Node<>(2);
+            Node<String> n3 = new Node<>(3);
+            Node<String> n4 = new Node<>(4);
+
+            ArrayList<Node<String>> nodeList = new ArrayList<Node<String>>();
+            nodeList.add(n1);
+            nodeList.add(n2);
+            nodeList.add(n3);
+            nodeList.add(n4);
+
+            Node<String> rootNode = new MerkleTreeV3<String>().createFrom(nodeList);
+
+            String s = new MerkleTreeV3<String>().serialize(rootNode);
+//            System.out.println(s);
+
+            rootNode = new MerkleTreeV3<String>().deSerialize(s);
+            s = new MerkleTreeV3<String>().serialize(rootNode);
+//            System.out.println(s);
         }
 }
