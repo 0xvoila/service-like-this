@@ -19,8 +19,8 @@ public class Database{
 
     static MerkleTreeV3.Node<HashMap<String, Object>> merkleRoot = null;
 
-    static int FLOOR_TOKEN = 0;
-    static int CEILING_TOKEN = 20;
+    static int FLOOR_TOKEN = -1000;
+    static int CEILING_TOKEN = 1000;
 
     static io.grpc.Server server;
 
@@ -38,20 +38,18 @@ public class Database{
         for(long i = FLOOR_TOKEN; i < CEILING_TOKEN; i++){
             HashMap<String, Object> record = DB.get(i);
 
+            HashMap<String, Object> data = new HashMap<>();
+            data.put("key", Long.toString(i));
+
+            MerkleTreeV3.Node<HashMap<String, Object>> n;
             if( record != null){
-                MerkleTreeV3.Node<HashMap<String, Object>> n = new MerkleTreeV3.Node<HashMap<String, Object>>(record.get("value").hashCode());
-                record.put("key", Long.toString(i));
-                n.setData(record);
-                newNodes.add(n);
+                n = new MerkleTreeV3.Node<HashMap<String, Object>>(record.get("value").hashCode());
             }
             else {
-                MerkleTreeV3.Node<HashMap<String, Object>> n = new MerkleTreeV3.Node<HashMap<String, Object>>("EMPTY".hashCode());
-                HashMap<String, Object> data = new HashMap<>();
-                data.put("key", Long.toString(i));
-                data.put("value", "EMPTY");
-                n.setData(data);
-                newNodes.add(n);
+                n = new MerkleTreeV3.Node<HashMap<String, Object>>("EMPTY".hashCode());
             }
+            n.setData(data);
+            newNodes.add(n);
 
         }
 
@@ -113,6 +111,24 @@ public class Database{
             responseObserver.onNext(merkleTree.build());
             responseObserver.onCompleted();
         }
+
+        @Override
+        public void getRecord(org.example.Key request,
+                  io.grpc.stub.StreamObserver<org.example.Record> responseObserver) {
+            Record.Builder builder = Record.newBuilder();
+            try{
+               builder.setKey(request.getKey()).setValue(new ObjectMapper().writeValueAsString(DB.get(request.getKey())));
+            }
+            catch(Exception e){
+                System.out.println("System exception has occured");
+            }
+
+            finally {
+                responseObserver.onNext(builder.build());
+                responseObserver.onCompleted();
+            }
+
+        }
     }
 
 
@@ -120,13 +136,17 @@ public class Database{
 
         int clientPort = 6001;
 
+
+
         public SyncData(int clientPort){
             this.clientPort = clientPort;
         }
         public void run(){
+
             ManagedChannelBuilder<?> channelBuilder = ManagedChannelBuilder.forAddress("127.0.0.1", this.clientPort).usePlaintext();
             Channel channel = channelBuilder.build();
             org.example.DatabaseGrpcServiceGrpc.DatabaseGrpcServiceBlockingStub blockingStub = org.example.DatabaseGrpcServiceGrpc.newBlockingStub(channel);
+
             org.example.Empty empty = org.example.Empty.newBuilder().build();
             org.example.MerkleTree merkleTree = blockingStub.getMerkle(empty);
 
@@ -137,8 +157,44 @@ public class Database{
 
             try {
                 System.out.println(new ObjectMapper().writeValueAsString(diffList));
+                if(diffList != null){
+                    updateDB(diffList);
+                }
             } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
+            }
+        }
+
+        private void updateDB(ArrayList<MerkleTreeV3.Node<HashMap<String, Object>>>  diffList){
+
+            ManagedChannelBuilder<?> channelBuilder = ManagedChannelBuilder.forAddress("127.0.0.1", this.clientPort).usePlaintext();
+            Channel channel = channelBuilder.build();
+            org.example.DatabaseGrpcServiceGrpc.DatabaseGrpcServiceBlockingStub blockingStub = org.example.DatabaseGrpcServiceGrpc.newBlockingStub(channel);
+
+            for (MerkleTreeV3.Node<HashMap<String, Object>> node:
+                    diffList) {
+                Key key = Key.newBuilder().setKey(Long.parseLong(String.valueOf(node.getData().get("key")))).build();
+                Record record = blockingStub.getRecord(key);
+
+                TypeReference<HashMap<String, Object>> typeReference = new TypeReference<HashMap<String, Object>>() {};
+
+                ObjectMapper objectMapper = new ObjectMapper();
+
+                try{
+                    HashMap<String, Object> x = objectMapper.readValue(record.getValue(), typeReference);
+                    if (x != null && DB.get(key.getKey()) == null){
+                        DB.put(key.getKey(), x);
+                    }
+                    else if (x != null && DB.get(key.getKey()) != null){
+                        if ( Long.parseLong(String.valueOf(DB.get(key.getKey()).get("timestamp"))) < Long.parseLong(String.valueOf(x.get("timestamp")))){
+                            DB.put(key.getKey(), x);
+                        }
+                    }
+                }
+                catch(Exception e){
+                    System.out.println(e.getMessage());
+                }
+
             }
         }
     }

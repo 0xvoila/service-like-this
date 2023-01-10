@@ -12,6 +12,7 @@ service DatabaseGrpcService{
 
   rpc CreateRecord(Record) returns (Record) {}
   rpc GetMerkle(Empty) returns (MerkleTree) {}
+  rpc GetRecord(Key) returns (Record) {}
 }
 
 message Record{
@@ -21,6 +22,10 @@ message Record{
 
 message MerkleTree{
   string node = 1;
+}
+
+message Key{
+  int64 key = 1;
 }
 
 message Empty{
