@@ -1,5 +1,8 @@
 package org.example;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.protobuf.Any;
 import io.grpc.Channel;
 import io.grpc.ManagedChannelBuilder;
 import io.vertx.core.AbstractVerticle;
@@ -45,7 +48,17 @@ public class Server extends AbstractVerticle {
                 ManagedChannelBuilder<?> channelBuilder = ManagedChannelBuilder.forAddress("127.0.0.1", backendServers.get(server)).usePlaintext();
                 Channel channel = channelBuilder.build();
                 org.example.DatabaseGrpcServiceGrpc.DatabaseGrpcServiceBlockingStub blockingStub = org.example.DatabaseGrpcServiceGrpc.newBlockingStub(channel);
-                Record req = Record.newBuilder().setKey(Integer.parseInt(key)).setValue(value).build();
+                HashMap<String, Object> data = new HashMap<>();
+                data.put("key", key);
+                data.put("value", value);
+                data.put("timestamp", System.currentTimeMillis());
+                ObjectMapper objectMapper = new ObjectMapper();
+                Record req = null;
+                try {
+                    req = Record.newBuilder().setKey(Integer.parseInt(key)).setValue(objectMapper.writeValueAsString(data)).build();
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                }
                 blockingStub.createRecord(req);
             }
 

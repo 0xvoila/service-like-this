@@ -2,6 +2,7 @@ package org.example;
 
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.scalified.tree.TreeNode;
 import com.scalified.tree.multinode.ArrayMultiTreeNode;
@@ -11,15 +12,15 @@ import io.grpc.stub.StreamObserver;
 import java.io.IOException;
 import java.util.*;
 
-public class Database {
+public class Database{
 
     final static int PAGE_SIZE = 10;
-    static TreeMap<Integer, String> DB = new TreeMap<>();
+    static HashMap<Long, HashMap<String, Object>> DB = new HashMap<>();
 
-    static MerkleTreeV3.Node<HashMap<String, String>> merkleRoot = null;
+    static MerkleTreeV3.Node<HashMap<String, Object>> merkleRoot = null;
 
-    static int FLOOR_TOKEN = -1000;
-    static int CEILING_TOKEN = 1000;
+    static int FLOOR_TOKEN = 0;
+    static int CEILING_TOKEN = 20;
 
     static io.grpc.Server server;
 
@@ -29,44 +30,24 @@ public class Database {
 
         start(Integer.parseInt(args[0]), Integer.parseInt(args[1]));
         server.awaitTermination();
-
-//        database.insert(1,"A");
-//        database.insert(2,"B");
-//        database.insert(3,"C");
-//        database.insert(4,"D");
-//        database.insert(5,"E");
-//        database.insert(6,"F");
-//
-//        ArrayList<TreeNode<String>> leafNodeHashList = database.prepareMerkle();
-//        database.merkleRoot = database.createMerkle(leafNodeHashList);
-//
-//        database.printMerkle();
-//
-//        database.auditMerkle(database.merkleRoot, database.merkleRoot);
     }
 
-    public void insert(int key, String value){
 
-        DB.put(key, value);
-    }
+    public static ArrayList<MerkleTreeV3.Node<HashMap<String, Object>>> prepareMerkle(){
+        ArrayList<MerkleTreeV3.Node<HashMap<String, Object>>> newNodes = new ArrayList<>();
+        for(long i = FLOOR_TOKEN; i < CEILING_TOKEN; i++){
+            HashMap<String, Object> record = DB.get(i);
 
-    public static ArrayList<MerkleTreeV3.Node<HashMap<String, String>>> prepareMerkle(){
-        ArrayList<MerkleTreeV3.Node<HashMap<String, String>>> newNodes = new ArrayList<>();
-        for(int i = FLOOR_TOKEN; i < CEILING_TOKEN; i++){
-            String value = DB.get(i);
-
-            if ( value != null){
-                MerkleTreeV3.Node<HashMap<String, String>> n = new MerkleTreeV3.Node<HashMap<String, String>>(value.hashCode());
-                HashMap<String, String> data = new HashMap<>();
-                data.put("key", Integer.toString(i));
-                data.put("value", value);
-                n.setData(data);
+            if( record != null){
+                MerkleTreeV3.Node<HashMap<String, Object>> n = new MerkleTreeV3.Node<HashMap<String, Object>>(record.get("value").hashCode());
+                record.put("key", Long.toString(i));
+                n.setData(record);
                 newNodes.add(n);
             }
             else {
-                MerkleTreeV3.Node<HashMap<String, String>> n = new MerkleTreeV3.Node<HashMap<String, String>>("EMPTY".hashCode());
-                HashMap<String, String> data = new HashMap<>();
-                data.put("key", Integer.toString(i));
+                MerkleTreeV3.Node<HashMap<String, Object>> n = new MerkleTreeV3.Node<HashMap<String, Object>>("EMPTY".hashCode());
+                HashMap<String, Object> data = new HashMap<>();
+                data.put("key", Long.toString(i));
                 data.put("value", "EMPTY");
                 n.setData(data);
                 newNodes.add(n);
@@ -80,18 +61,10 @@ public class Database {
 
 //    Run it every 2 second to create a new Merkle
 
-    public static MerkleTreeV3.Node<HashMap<String, String>> createMerkle (ArrayList<MerkleTreeV3.Node<HashMap<String, String>>> levelNNodesList){
+    public static MerkleTreeV3.Node<HashMap<String, Object>> createMerkle (ArrayList<MerkleTreeV3.Node<HashMap<String, Object>>> levelNNodesList){
 
-        return  new MerkleTreeV3<HashMap<String, String>>().createFrom(levelNNodesList);
+        return  new MerkleTreeV3<HashMap<String, Object>>().createFrom(levelNNodesList);
 
-    }
-
-    public void printMerkle(){
-
-        // Iterating over the tree elements using foreach
-//        for (TreeNode<String> node : merkleRoot) {
-//            System.out.println(node.data()); // any other action goes here
-//        }
     }
 
 
@@ -110,7 +83,15 @@ public class Database {
 
         @Override
         public void createRecord(org.example.Record request, StreamObserver<org.example.Record> responseObserver) {
-            DB.put(request.getKey(), request.getValue());
+            ObjectMapper objectMapper = new ObjectMapper();
+            try{
+                TypeReference<HashMap<String, Object>> typeReference = new TypeReference<HashMap<String, Object>>() {};
+                DB.put(request.getKey(), objectMapper.readValue(request.getValue(), typeReference));
+            }
+            catch(Exception e){
+                System.out.println("Error in creating the record");
+            }
+
             responseObserver.onNext(request);
             responseObserver.onCompleted();
         }
@@ -119,10 +100,10 @@ public class Database {
         public void getMerkle(org.example.Empty request,
                               io.grpc.stub.StreamObserver<org.example.MerkleTree> responseObserver){
             org.example.MerkleTree.Builder merkleTree = org.example.MerkleTree.newBuilder();
-            ArrayList<MerkleTreeV3.Node<HashMap<String, String>>> leafNodeHashList = prepareMerkle();
+            ArrayList<MerkleTreeV3.Node<HashMap<String, Object>>> leafNodeHashList = prepareMerkle();
             merkleRoot = createMerkle(leafNodeHashList);
             try{
-                String s = new MerkleTreeV3<HashMap<String, String>>().serialize(merkleRoot);
+                String s = new MerkleTreeV3<HashMap<String, Object>>().serialize(merkleRoot);
                 merkleTree.setNode(s);
             }
             catch(Exception e){
@@ -149,10 +130,10 @@ public class Database {
             org.example.Empty empty = org.example.Empty.newBuilder().build();
             org.example.MerkleTree merkleTree = blockingStub.getMerkle(empty);
 
-            MerkleTreeV3.Node<HashMap<String, String>> replicaMerkle = new MerkleTreeV3<HashMap<String, String>>().deSerialize(merkleTree.getNode());
-            ArrayList<MerkleTreeV3.Node<HashMap<String, String>>> leafNodeHashList = prepareMerkle();
+            MerkleTreeV3.Node<HashMap<String, Object>> replicaMerkle = new MerkleTreeV3<HashMap<String, Object>>().deSerialize(merkleTree.getNode());
+            ArrayList<MerkleTreeV3.Node<HashMap<String, Object>>> leafNodeHashList = prepareMerkle();
             merkleRoot = createMerkle(leafNodeHashList);
-            ArrayList<MerkleTreeV3.Node<HashMap<String, String>>> diffList = new MerkleTreeV3<HashMap<String, String>>().auditMerkle(merkleRoot, replicaMerkle, new ArrayList<MerkleTreeV3.Node<HashMap<String, String>>>());
+            ArrayList<MerkleTreeV3.Node<HashMap<String, Object>>> diffList = new MerkleTreeV3<HashMap<String, Object>>().auditMerkle(merkleRoot, replicaMerkle, new ArrayList<MerkleTreeV3.Node<HashMap<String, Object>>>());
 
             try {
                 System.out.println(new ObjectMapper().writeValueAsString(diffList));

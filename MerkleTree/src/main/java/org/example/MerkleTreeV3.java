@@ -6,6 +6,9 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.stream.IntStream;
 
 
 public class MerkleTreeV3<T>{
@@ -135,19 +138,34 @@ public class MerkleTreeV3<T>{
             return createFrom(newNodes);
         }
 
+        public int size(Node<T> rootNode){
+
+            if(rootNode == null){
+                return 1;
+            }
+
+            return size(rootNode.leftNode) + size(rootNode.rightNode);
+        }
+
         public String serialize(Node<T> rootNode) throws JsonProcessingException {
 
-            ArrayList<Node<T>> preOrderedList = new ArrayList<>();
+            ArrayList<Node<T>> preOrderedList = new ArrayList<>();;
+            int n = size(rootNode);
+
             preOrderedList.add(rootNode);
+
+            for(int i=0; i<(2*n + 1); i++){
+                preOrderedList.add(null);
+            }
+
+
 
             int i = 0;
             while (i != preOrderedList.size()) {
 
-                if (preOrderedList.get(i).leftNode != null) {
-                    preOrderedList.add(preOrderedList.get(i).leftNode);
-                }
-                if (preOrderedList.get(i).rightNode != null) {
-                    preOrderedList.add(preOrderedList.get(i).rightNode);
+                if(preOrderedList.get(i) != null){
+                    preOrderedList.add(2*i+1,preOrderedList.get(i).leftNode);
+                    preOrderedList.add(2*i+2,preOrderedList.get(i).rightNode);
                 }
 
                 i = i + 1;
@@ -168,10 +186,8 @@ public class MerkleTreeV3<T>{
                 int i = 0;
                 while (i != preOrderedList.size()) {
 
-                    if(2*i + 1 < preOrderedList.size()){
+                    if(preOrderedList.get(i) != null){
                         preOrderedList.get(i).leftNode = preOrderedList.get(2*i + 1);
-                    }
-                    if (2 * i + 2 < preOrderedList.size()){
                         preOrderedList.get(i).rightNode = preOrderedList.get(2*i + 2);
                     }
 
@@ -196,8 +212,10 @@ public class MerkleTreeV3<T>{
                 return null;
             }
 
-            if (m1.isLeaf() && m2.isLeaf()){
-                diffList.add(m1);
+            if (m1.getData() != null && m2.getData() != null){
+                System.out.println(m1.getData());
+                System.out.println(m2.getData());
+                diffList.add(m2);
             }
 
             auditMerkle(m1.leftNode, m2.leftNode, diffList);
@@ -212,12 +230,26 @@ public class MerkleTreeV3<T>{
             Node<String> n2 = new Node<>(2);
             Node<String> n3 = new Node<>(3);
             Node<String> n4 = new Node<>(4);
+            Node<String> n5 = new Node<>(5);
+            Node<String> n6 = new Node<>(6);
+            Node<String> n7 = new Node<>(7);
+            Node<String> n8 = new Node<>(8);
+            Node<String> n9 = new Node<>(9);
+
+
 
             ArrayList<Node<String>> nodeList = new ArrayList<Node<String>>();
             nodeList.add(n1);
             nodeList.add(n2);
             nodeList.add(n3);
             nodeList.add(n4);
+            nodeList.add(n5);
+            nodeList.add(n6);
+            nodeList.add(n7);
+            nodeList.add(n8);
+            nodeList.add(n9);
+
+
 
             Node<String> rootNode = new MerkleTreeV3<String>().createFrom(nodeList);
 

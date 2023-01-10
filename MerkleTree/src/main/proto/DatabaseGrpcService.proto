@@ -5,6 +5,9 @@ option java_outer_classname = "DatabaseProto";
 option java_package = "org.example";
 option objc_class_prefix = "RTG";
 
+import "google/protobuf/any.proto";
+
+
 service DatabaseGrpcService{
 
   rpc CreateRecord(Record) returns (Record) {}
@@ -12,7 +15,7 @@ service DatabaseGrpcService{
 }
 
 message Record{
-    int32 key = 1;
+    int64 key = 1;
     string value = 2;
 }
 
