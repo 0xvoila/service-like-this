@@ -3,6 +3,7 @@ package org.freshworks.connectors.box;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import org.freshworks.connectors.BaseConnector;
+import org.freshworks.core.model.RequestResponse;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeName("org.freshworks.connectors.box.User")
@@ -166,8 +167,12 @@ public class User implements BaseConnector {
         this.avatar_url = avatar_url;
     }
 
-    public String getNexturl(String thisURl, org.freshworks.connectors.okta.Application app ){
+    public static RequestResponse getNextRequest(RequestResponse requestResponse, Application app ){
 
-        return "http://okta.freshworks.com/page=2";
+        return requestResponse;
+    }
+
+    public static Boolean isComplete(RequestResponse requestResponse){
+        return false;
     }
 }

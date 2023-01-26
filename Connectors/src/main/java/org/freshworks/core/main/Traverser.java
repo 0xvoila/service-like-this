@@ -24,13 +24,27 @@ public class Traverser {
 
         ObjectMapper objectMapper = new ObjectMapper();
         Class<?> cl = Class.forName(node.data());
-        Method getNextMethod = cl.getMethod("getNextRequest");
-        Method isCompleteMethod = cl.getMethod("isComplete");
+        Method getNextMethod = null;
+
+        if(node.parent() != null){
+            getNextMethod = cl.getDeclaredMethod("getNextRequest", RequestResponse.class, Class.forName(node.parent().data()));
+        }
+        else{
+            getNextMethod = cl.getDeclaredMethod("getNextRequest", RequestResponse.class);
+        }
+
+        Method isCompleteMethod = cl.getDeclaredMethod("isComplete", RequestResponse.class);
         RequestResponse requestResponse = new RequestResponse();
         requestResponse.setConnectorName(node.data());
 
         while((Boolean)isCompleteMethod.invoke(null, requestResponse)){
-            requestResponse = (RequestResponse) getNextMethod.invoke(null, requestResponse, Class.forName(node.parent().data()));
+            if(node.parent() != null){
+                requestResponse = (RequestResponse) getNextMethod.invoke(null, requestResponse, Class.forName(node.parent().data()));
+            }
+            else{
+                requestResponse = (RequestResponse) getNextMethod.invoke(null, requestResponse);
+            }
+
             requestResponse.setConnectorName(node.data());
             requestResponse = getObject(requestResponse);
 
@@ -38,10 +52,6 @@ public class Traverser {
             listOfObjects.stream().forEach(s -> System.out.println(s));
         }
 
-        Iterator<TreeNode<String>> it = node.iterator();
-        while(it.hasNext()){
-            traverse(it.next());
-        }
     }
 
     public static RequestResponse getObject(RequestResponse requestResponse) {

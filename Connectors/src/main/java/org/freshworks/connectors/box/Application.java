@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.github.javafaker.App;
 import org.freshworks.connectors.BaseConnector;
+import org.freshworks.core.model.RequestResponse;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeName("org.freshworks.connectors.box.Application")
@@ -33,9 +34,13 @@ public class Application implements BaseConnector {
         this.id = id;
     }
 
-    public String getNexturl(String thisURl, org.freshworks.connectors.okta.Application app ){
+    public static RequestResponse getNextRequest(RequestResponse requestResponse ){
 
-        return "http://okta.freshworks.com/page=2";
+        return requestResponse;
+    }
+
+    public static Boolean isComplete(RequestResponse requestResponse){
+        return false;
     }
 
     public Boolean filter(Application app ){

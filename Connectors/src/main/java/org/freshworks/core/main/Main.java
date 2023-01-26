@@ -39,9 +39,13 @@ public class Main
         ScanConfigItem scanConfigItem = new ScanConfigItem();
         main.connectorConfigItemTable = scanConfigItem.scanner(connectorConfig,main.dagMap);
 
-        Processor processor = new Processor(main.connectorConfigItemTable);
-        processor.process();
+//        Processor processor = new Processor(main.connectorConfigItemTable);
+//        processor.process();
 
-        Traverser.traverse(main.dagMap.get("org.freshworks.connectors.box"));
+
+        Iterator<TreeNode<String>> it = main.dagMap.get("org.freshworks.connectors.box").iterator();
+        while(it.hasNext()){
+            Traverser.traverse(it.next());
+        }
     }
 }
