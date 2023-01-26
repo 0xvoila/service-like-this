@@ -56,4 +56,8 @@ public class ServicePrincipal implements BaseConnector {
         return false;
     }
 
+    public String getNexturl(String thisURl, Application app ){
+
+        return "http://okta.freshworks.com/page=2";
+    }
 }

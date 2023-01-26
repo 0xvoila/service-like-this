@@ -24,6 +24,8 @@ public class User implements BaseConnector {
     String address;
     String avatar_url;
 
+    String account_id;
+
     Application application;
 
 
@@ -164,5 +166,8 @@ public class User implements BaseConnector {
         this.avatar_url = avatar_url;
     }
 
+    public String getNexturl(String thisURl, org.freshworks.connectors.okta.Application app ){
 
+        return "http://okta.freshworks.com/page=2";
+    }
 }

@@ -20,6 +20,9 @@ public class Application implements BaseConnector {
         return false;
     }
 
+    public String getNexturl(String thisURl, org.freshworks.connectors.okta.Application app ){
 
+        return "http://okta.freshworks.com/page=2";
+    }
 
 }

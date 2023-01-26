@@ -1,21 +1,22 @@
-package org.example;
+package org.example.dev;
 
-public class GenericType<T> {
+public class SimpleGenericType<T> {
 
     T elem;
 
-    public GenericType(T e){
+    public SimpleGenericType(T e){
         this.elem = e;
     }
     public static void main(String args[]){
 
-        GenericType<String> genericType = new GenericType<String>("amit");
-        GenericType<Integer> genericType1 = new GenericType<Integer>(1);
-        System.out.println(genericType.getElem());
-        System.out.println(genericType1.getElem());
+        SimpleGenericType<String> simpleGenericType = new SimpleGenericType<String>("amit");
+        SimpleGenericType<Integer> simpleGenericType1 = new SimpleGenericType<Integer>(1);
+        System.out.println(simpleGenericType.getElem());
+        System.out.println(simpleGenericType1.getElem());
     }
 
     public T getElem(){
         return this.elem;
     }
+
 }

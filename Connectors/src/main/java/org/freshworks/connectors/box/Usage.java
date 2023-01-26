@@ -47,4 +47,8 @@ public class Usage implements BaseConnector {
         this.login = login;
     }
 
+    public String getNexturl(String thisURl, org.freshworks.connectors.okta.Application app ){
+
+        return "http://okta.freshworks.com/page=2";
+    }
 }

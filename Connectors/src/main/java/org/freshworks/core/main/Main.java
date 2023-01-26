@@ -7,6 +7,8 @@ import org.freshworks.core.scanners.ScanConnector;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.net.URISyntaxException;
 import java.util.*;
 
 /**
@@ -16,9 +18,10 @@ import java.util.*;
 public class Main
 {
     Multimap<String, String> connectorConfigItemTable;
+    HashMap<String, TreeNode<String>> dagMap ;
 
 
-    public static void main( String[] args ) throws IOException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException, ClassNotFoundException, NoSuchFieldException {
+    public static void main( String[] args ) throws IOException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException, ClassNotFoundException, NoSuchFieldException, URISyntaxException {
 
         ArrayList<HashMap<String, String>> connectorConfig = new ArrayList<>();
         HashMap<String, String> x = new HashMap<>();
@@ -31,13 +34,14 @@ public class Main
         Main main = new Main();
 
         ScanConnector scanConnector = new ScanConnector();
-        HashMap<String, TreeNode<String>> dagMap = scanConnector.scanner(connectorConfig);
+        main.dagMap = scanConnector.scanner(connectorConfig);
 
         ScanConfigItem scanConfigItem = new ScanConfigItem();
-        main.connectorConfigItemTable = scanConfigItem.scanner(connectorConfig,dagMap);
+        main.connectorConfigItemTable = scanConfigItem.scanner(connectorConfig,main.dagMap);
 
         Processor processor = new Processor(main.connectorConfigItemTable);
         processor.process();
 
+        Traverser.traverse(main.dagMap.get("org.freshworks.connectors.box"));
     }
 }

@@ -53,8 +53,13 @@ public class Usage implements BaseConnector {
         return fromUrl + "/" + this.servicePrincipal.id;
     }
 
-
     public Boolean isComplete(){
         return false;
     }
+
+    public String getNexturl(String thisURl, Application app ){
+
+        return "http://okta.freshworks.com/page=2";
+    }
+
 }

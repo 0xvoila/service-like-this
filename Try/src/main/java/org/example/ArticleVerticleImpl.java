@@ -1,8 +1,8 @@
-package org.example;
+package org.example.dev;
 
 import io.vertx.core.AbstractVerticle;
 
-public class ArticleVerticle extends AbstractVerticle {
+public class ArticleVerticleImpl extends AbstractVerticle implements ArticleVerticle{
 
     public void start(){
 

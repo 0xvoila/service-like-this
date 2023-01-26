@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Multimap;
-import org.freshworks.core.Annotations.FreshworksLookup;
+import org.freshworks.core.Annotations.FreshLookup;
 import org.freshworks.core.utils.Utility;
 import org.freshworks.faker.BoxFaker;
 
@@ -51,13 +51,13 @@ public class Processor {
                     System.out.println(objectMapper.writeValueAsString(configItemClassObject));
                 }
                 else if (!isConfigItemDependOnSingleStep(configItemStepDependencyList) && isConfigItemDependOnThisStep(configItemStepDependencyList,mainStepPathAsString)){
-//                    Check if dependency List objects are present in the redis or not
+//                  Check if dependency List objects are present in the redis or not
                     Class<?> configItemClass =  Class.forName(configItem);
-                    FreshworksLookup freshworksLookup = configItemClass.getAnnotation(FreshworksLookup.class);
+                    FreshLookup freshLookup = configItemClass.getAnnotation(FreshLookup.class);
                     Object mainStepClassObject = objectMapper.readValue(mainStepObjectAsString, Class.forName(mainStepPathAsString));
                     Class<?> mainStepClass = Class.forName(mainStepPathAsString);
-                    Method getterMethod = mainStepClass.getDeclaredMethod(GETTER_METHOD_PREFIX + getLookupField(mainStepClass, freshworksLookup).substring(0, 1).toUpperCase()
-                            + getLookupField(mainStepClass, freshworksLookup).substring(1));
+                    Method getterMethod = mainStepClass.getDeclaredMethod(GETTER_METHOD_PREFIX + getLookupField(mainStepClass, freshLookup).substring(0, 1).toUpperCase()
+                            + getLookupField(mainStepClass, freshLookup).substring(1));
                     Object fieldValue = getterMethod.invoke(mainStepClassObject);
                     redis.put(mainStepPathAsString + "_" + fieldValue,mainStepObjectAsString);
 
@@ -101,14 +101,14 @@ public class Processor {
     }
 
 
-    public String getLookupField(Class<?> masterClass, FreshworksLookup freshworksLookup){
+    public String getLookupField(Class<?> masterClass, FreshLookup freshLookup){
 
         String className = masterClass.getName();
-        if ( freshworksLookup.leftClass().getName().equals(className)){
-            return freshworksLookup.leftClassField();
+        if ( freshLookup.leftClass().getName().equals(className)){
+            return freshLookup.leftClassField();
         }
         else {
-            return freshworksLookup.rightClassField();
+            return freshLookup.rightClassField();
         }
     }
 
@@ -174,11 +174,11 @@ public class Processor {
         Random rand = new Random();
         int randomNum = rand.nextInt((100 - 2) + 1) + 2;
 
-        if ( randomNum < 5 ){
+        if ( randomNum < 50 ){
             return BoxFaker.generateApplication();
         }
 
-        else if ( randomNum > 5 && randomNum < 50){
+        else if ( randomNum > 50 && randomNum < 60){
             return BoxFaker.generateUser();
         }
         else {

@@ -69,7 +69,7 @@ public class ScanConfigItem {
         while(it.hasNext()){
             String x = it.next().getName();
             TreeNode<String> n = DAG.find(x);
-            if (n != null && n.height() <= nodeHeight){
+            if (n != null && n.isLeaf()){
                 dependents.add(x);
                 nodeHeight = n.height();
             }

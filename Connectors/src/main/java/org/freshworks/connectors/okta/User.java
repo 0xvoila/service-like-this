@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import org.freshworks.connectors.BaseConnector;
 
+import java.util.Arrays;
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeName("org.freshworks.connectors.okta.User")
 public class User implements BaseConnector {
@@ -53,8 +55,13 @@ public class User implements BaseConnector {
         return fromUrl + "/" + this.servicePrincipal.id;
     }
 
-
     public Boolean isComplete(){
         return false;
     }
+
+    public String getNexturl(String thisURl, Application app ){
+
+        return "http://okta.freshworks.com/page=2";
+    }
+
 }

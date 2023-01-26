@@ -1,6 +1,8 @@
 package org.freshworks.connectors.onelogin;
 
 import org.freshworks.connectors.BaseConnector;
+import org.freshworks.connectors.okta.Application;
+import org.freshworks.core.model.RequestResponse;
 
 public class User implements BaseConnector {
 
@@ -26,8 +28,11 @@ public class User implements BaseConnector {
         return fromUrl + "/" + this.servicePrincipal.groupId;
     }
 
-
     public Boolean isComplete(){
         return false;
+    }
+
+    public RequestResponse getNextRequest(RequestResponse requestResponse, Application app ){
+        return requestResponse;
     }
 }

@@ -7,7 +7,7 @@ import java.lang.annotation.*;
 @Target(ElementType.TYPE)
 @Inherited
 @Retention(RetentionPolicy.RUNTIME)
-public @interface FreshworksLookup {
+public @interface FreshLookup {
     Class<?> leftClass();
     String leftClassField();
 
