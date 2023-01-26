@@ -37,7 +37,7 @@ public class Traverser {
         RequestResponse requestResponse = new RequestResponse();
         requestResponse.setConnectorName(node.data());
 
-        while((Boolean)isCompleteMethod.invoke(null, requestResponse)){
+        while(Boolean.FALSE.equals((Boolean)isCompleteMethod.invoke(null, requestResponse))){
             if(node.parent() != null){
                 requestResponse = (RequestResponse) getNextMethod.invoke(null, requestResponse, Class.forName(node.parent().data()));
             }

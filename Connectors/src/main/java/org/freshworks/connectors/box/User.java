@@ -5,6 +5,10 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import org.freshworks.connectors.BaseConnector;
 import org.freshworks.core.model.RequestResponse;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.http.HttpRequest;
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeName("org.freshworks.connectors.box.User")
 public class User implements BaseConnector {
@@ -167,8 +171,11 @@ public class User implements BaseConnector {
         this.avatar_url = avatar_url;
     }
 
-    public static RequestResponse getNextRequest(RequestResponse requestResponse, Application app ){
+    public static RequestResponse getNextRequest(RequestResponse requestResponse, Application app ) throws URISyntaxException {
 
+        HttpRequest request = requestResponse.getRequest();
+        request = HttpRequest.newBuilder(new URI("https://jsonplaceholder.typicode.com/posts")).GET().build();
+        requestResponse.setRequest(request);
         return requestResponse;
     }
 

@@ -6,6 +6,10 @@ import com.github.javafaker.App;
 import org.freshworks.connectors.BaseConnector;
 import org.freshworks.core.model.RequestResponse;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.http.HttpRequest;
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeName("org.freshworks.connectors.box.Application")
 public class Application implements BaseConnector {
@@ -34,8 +38,11 @@ public class Application implements BaseConnector {
         this.id = id;
     }
 
-    public static RequestResponse getNextRequest(RequestResponse requestResponse ){
+    public static RequestResponse getNextRequest(RequestResponse requestResponse ) throws URISyntaxException {
 
+        HttpRequest request = requestResponse.getRequest();
+        request = HttpRequest.newBuilder(new URI("https://jsonplaceholder.typicode.com/posts")).GET().build();
+        requestResponse.setRequest(request);
         return requestResponse;
     }
 
