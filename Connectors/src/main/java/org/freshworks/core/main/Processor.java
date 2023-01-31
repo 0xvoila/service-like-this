@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Multimap;
+import org.freshworks.Infra;
 import org.freshworks.core.Annotations.FreshLookup;
 import org.freshworks.core.utils.Utility;
 import org.freshworks.faker.BoxFaker;
@@ -24,16 +25,16 @@ public class Processor {
     public Processor(Multimap<String, String> connectorConfigItemTable){
         this.connectorConfigItemTable = connectorConfigItemTable;
     }
-    public void process() throws IOException, InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException, ClassNotFoundException, NoSuchFieldException {
+    public void process() throws IOException, InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException, ClassNotFoundException, NoSuchFieldException, InterruptedException {
 
 
         ObjectMapper objectMapper = new ObjectMapper();
 
         while(true){
-            String s = getFromKafka();
+            String s = Infra.kafka.take();
             JsonNode jNode = objectMapper.readTree(s);
-            String mainStepPathAsString = jNode.get("connectorClass").get(JsonTypeInfo_As_PROPERTY).asText();
-            String mainStepObjectAsString = jNode.get("connectorClass").toString();
+            String mainStepPathAsString = jNode.get("baseBean").get(JsonTypeInfo_As_PROPERTY).asText();
+            String mainStepObjectAsString = jNode.get("baseBean").toString();
             ArrayList<String> unwrappedStepsOfMainStep =  unwrapMainStep(mainStepObjectAsString);
             for(String  configItem: connectorConfigItemTable.keys()) {
 

@@ -5,30 +5,30 @@ import org.freshworks.beans.BaseBean;
 
 public class DiscoveryObject {
 
-    String connectorName;
+    String beanName;
     BaseBean baseBean;
 
     public DiscoveryObject(){
 
     }
-    public DiscoveryObject(String connectorName, BaseBean baseBean){
-        this.connectorName = connectorName;
+    public DiscoveryObject(String beanName, BaseBean baseBean){
+        this.beanName = beanName;
         this.baseBean = baseBean;
     }
 
-    public String getConnectorName() {
-        return connectorName;
+    public String getBeanName() {
+        return beanName;
     }
 
-    public void setConnectorName(String connectorName) {
-        this.connectorName = connectorName;
+    public void setBeanName(String beanName) {
+        this.beanName = beanName;
     }
 
-    public BaseBean getConnectorClass() {
+    public BaseBean getBaseBean() {
         return baseBean;
     }
 
-    public void setConnectorClass(BaseBean baseBean) {
+    public void setBaseBean(BaseBean baseBean) {
         this.baseBean = baseBean;
     }
 }

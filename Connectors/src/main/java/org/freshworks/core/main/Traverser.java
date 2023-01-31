@@ -113,7 +113,7 @@ public class Traverser {
                         DiscoveryObject discoveryObject = new DiscoveryObject(nodeMetaData.get("bean"), baseBean);
 
                         // Here push this to queue for processing by Processor
-                        Infra.kafka.add(discoveryObject);
+                        Infra.kafka.add(objectMapper.writeValueAsString(discoveryObject));
 
                         // Here save this as well so that it can be used to process its child
                         String s = objectMapper.writeValueAsString(baseBean);
