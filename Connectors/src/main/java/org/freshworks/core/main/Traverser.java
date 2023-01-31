@@ -5,16 +5,16 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.scalified.tree.TreeNode;
-import org.freshworks.Constant;
+import org.freshworks.Constants;
 import org.freshworks.Infra;
 import org.freshworks.beans.BaseBean;
 import org.freshworks.core.model.DiscoveryObject;
 import org.freshworks.core.model.RequestResponse;
+import org.freshworks.core.utils.Utility;
 import org.freshworks.postman.BasePostman;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpResponse;
@@ -66,16 +66,6 @@ public class Traverser {
         }
     }
 
-    public static HashMap<String, String> getBeanAndAssetByPostManClass(Class<?> postManClass, HashMap<String, String> syncConfig){
-
-        String postmanClassName = postManClass.getName().substring(postManClass.getName().lastIndexOf('.') + 1);
-
-        HashMap<String, String> data = new HashMap<>();
-        data.put("postman", Constant.POSTMAN_PATH + syncConfig.get("service") + "." + postmanClassName);
-        data.put("bean", Constant.BEAN_PATH + syncConfig.get("service") + "." + postmanClassName);
-
-        return data;
-    }
 
     private static void process(TreeNode<String> node, JsonNode parentNodeData, HashMap<String, String> syncConfig){
 
@@ -103,7 +93,7 @@ public class Traverser {
 
                     JsonNode jNode = iterator.next();
                     ObjectNode o = (ObjectNode) jNode;
-                    HashMap<String, String> nodeMetaData = getBeanAndAssetByPostManClass(cl, syncConfig);
+                    HashMap<String, String> nodeMetaData = Utility.getMetaDataByClass(cl, syncConfig);
                     o.put("type", nodeMetaData.get("bean"));
                     BaseBean baseBean = objectMapper.readValue(o.toString(), BaseBean.class);
 

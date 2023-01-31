@@ -3,20 +3,19 @@ package org.freshworks.core.scanners;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.scalified.tree.TreeNode;
-import org.freshworks.Constant;
+import org.freshworks.Constants;
 import org.freshworks.assets.BaseAsset;
 import org.freshworks.core.utils.Utility;
 import org.reflections.Reflections;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
-import org.reflections.util.FilterBuilder;
+import org.yaml.snakeyaml.scanner.Constant;
 
 import java.lang.reflect.Method;
 import java.util.*;
 
 import static org.freshworks.Constants.DAG_MAX_HEIGHT;
 import static org.reflections.scanners.Scanners.SubTypes;
-import static org.reflections.util.ReflectionUtilsPredicates.withNamePrefix;
 
 public class ScanAssets {
 
@@ -29,16 +28,14 @@ public class ScanAssets {
 //            Creation of the config item table for the given config item and connector.
 //            As of now we have just Software class
         Reflections reflections = new Reflections( new ConfigurationBuilder().
-                setUrls(ClasspathHelper.forPackage(Constant.ASSET_PATH + sysConfig.get("service"))).
-                filterInputsBy(new FilterBuilder().includePackage(Constant.ASSET_PATH + sysConfig.get("service")))
+                setUrls(ClasspathHelper.forPackage(Constants.ASSET_PATH + sysConfig.get("service")))
         );
 
-        Set<Class<?>> steps = reflections.get(SubTypes.of(BaseAsset.class).
-                filter(withNamePrefix(Constant.ASSET_PATH + sysConfig.get("service")))
+        Set<Class<?>> steps = reflections.get(SubTypes.of(BaseAsset.class)
                 .asClass());
 
         for (Class<?> configItem : steps) {
-            ArrayList<String> dependentClassList = findDependencyOfConfigItem(Utility.getAllSetters(configItem), Constant.ASSET_PATH + sysConfig.get("service"), dagMap);
+            ArrayList<String> dependentClassList = findDependencyOfConfigItem(Utility.getAllSetters(configItem), sysConfig, dagMap);
             for (String dependent :
                     dependentClassList) {
                 connectorConfigItemTable.put(configItem.getName(), dependent);
@@ -48,9 +45,9 @@ public class ScanAssets {
         return connectorConfigItemTable;
     }
 
-    public ArrayList<String> findDependencyOfConfigItem(List<Method> setterMethodList, String connector, HashMap<String, TreeNode<String>> dagMap){
+    public ArrayList<String> findDependencyOfConfigItem(List<Method> setterMethodList, HashMap<String, String> syncConfig, HashMap<String, TreeNode<String>> dagMap){
 
-        TreeNode<String> DAG = dagMap.get(connector);
+        TreeNode<String> DAG = dagMap.get(syncConfig.get("service"));
 
         ArrayList<String> dependents = new ArrayList<>();
 
@@ -66,8 +63,11 @@ public class ScanAssets {
 
         int nodeHeight = DAG_MAX_HEIGHT;
         while(it.hasNext()){
-            String x = it.next().getName();
-            TreeNode<String> n = DAG.find(x);
+            Class<?> c = it.next();
+            String x = c.getName();
+            HashMap<String, String> metaData = Utility.getMetaDataByClass(c, syncConfig);
+            String beanName = metaData.get("postman");
+            TreeNode<String> n = DAG.find(beanName);
             if (n != null && n.isLeaf()){
                 dependents.add(x);
                 nodeHeight = n.height();

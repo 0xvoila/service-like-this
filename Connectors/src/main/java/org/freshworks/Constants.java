@@ -9,4 +9,8 @@ public class Constants {
     public final static String SETTER_METHOD_PREFIX = "set";
 
     public final static int DAG_MAX_HEIGHT = 10000;
+
+    public final static String POSTMAN_PATH = "org.freshworks.postman.";
+    public final static String BEAN_PATH = "org.freshworks.beans.";
+    public final static String ASSET_PATH = "org.freshworks.assets.";
 }
