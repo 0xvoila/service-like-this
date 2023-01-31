@@ -1,6 +1,5 @@
 package org.freshworks.assets.box;
 
-import com.github.javafaker.App;
 import org.freshworks.assets.BaseAsset;
 import org.freshworks.beans.box.Application;
 import org.freshworks.beans.box.Usage;

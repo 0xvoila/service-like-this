@@ -17,6 +17,22 @@ public class Usage extends BasePostman {
 
 
     @Override
+    public RequestResponse start() {
+
+        RequestResponse requestResponse = new RequestResponse();
+        try{
+            HttpRequest request = requestResponse.getRequest();
+            request = HttpRequest.newBuilder(new URI("http://localhost:4000/usage")).GET().build();
+            requestResponse.setRequest(request);
+            return requestResponse;
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    @Override
     public Boolean filter(RequestResponse currentRequest, JsonNode... parentJsonObject) {
         return null;
     }

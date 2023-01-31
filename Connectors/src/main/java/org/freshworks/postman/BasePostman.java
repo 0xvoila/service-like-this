@@ -8,6 +8,8 @@ import java.util.ArrayList;
 
 public abstract class BasePostman {
 
+    public abstract RequestResponse start();
+
     public abstract Boolean filter(RequestResponse currentRequest, JsonNode... parentJsonObject);
 
     public abstract RequestResponse getNextUrl(RequestResponse currentRequest, JsonNode... parentJsonObject);

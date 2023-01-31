@@ -66,8 +66,8 @@ public class ScanAssets {
             Class<?> c = it.next();
             String x = c.getName();
             HashMap<String, String> metaData = Utility.getMetaDataByClass(c, syncConfig);
-            String beanName = metaData.get("postman");
-            TreeNode<String> n = DAG.find(beanName);
+            String traverserName = metaData.get("postman");
+            TreeNode<String> n = DAG.find(traverserName);
             if (n != null && n.isLeaf()){
                 dependents.add(x);
                 nodeHeight = n.height();

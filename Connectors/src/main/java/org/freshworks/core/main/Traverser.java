@@ -72,7 +72,6 @@ public class Traverser {
         try{
             Class<?> cl = Class.forName(node.data());
             ObjectMapper objectMapper = new ObjectMapper();
-            RequestResponse requestResponse = new RequestResponse();
 
             BasePostman basePostman = null;
             if(singletonObjects.get(node.data()) != null){
@@ -83,6 +82,7 @@ public class Traverser {
                 singletonObjects.put(node.data(), basePostman);
             }
 
+            RequestResponse requestResponse = basePostman.start();
             while (Boolean.FALSE.equals(basePostman.isComplete(requestResponse))) {
                 requestResponse = basePostman.getNextUrl(requestResponse, parentNodeData);
                 getObject(requestResponse);
@@ -97,7 +97,7 @@ public class Traverser {
                     o.put("type", nodeMetaData.get("bean"));
                     BaseBean baseBean = objectMapper.readValue(o.toString(), BaseBean.class);
 
-                    if (baseBean.filter()) {
+                    if (Boolean.TRUE.equals(baseBean.filter())) {
                         baseBean.transform();
                         baseBean.setParentNode(parentNodeData);
                         DiscoveryObject discoveryObject = new DiscoveryObject(nodeMetaData.get("bean"), baseBean);
