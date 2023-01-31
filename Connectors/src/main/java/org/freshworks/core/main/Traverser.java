@@ -1,55 +1,45 @@
 package org.freshworks.core.main;
 
 
-import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.scalified.tree.TreeNode;
-import org.freshworks.connectors.BaseConnector;
+import org.freshworks.Constant;
+import org.freshworks.Infra;
+import org.freshworks.beans.BaseBean;
+import org.freshworks.core.model.DiscoveryObject;
 import org.freshworks.core.model.RequestResponse;
+import org.freshworks.postman.BasePostman;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 
 public class Traverser {
 
-    public static void traverse(TreeNode<String> node) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException, URISyntaxException, IOException {
+
+    public static void traverse(TreeNode<String> node, HashMap<String, String> syncConfig) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException, URISyntaxException, IOException, InstantiationException {
 
         ObjectMapper objectMapper = new ObjectMapper();
-        Class<?> cl = Class.forName(node.data());
-        Method getNextMethod = null;
 
-        if(node.parent() != null){
-            getNextMethod = cl.getDeclaredMethod("getNextRequest", RequestResponse.class, Class.forName(node.parent().data()));
+        if(node.parent() == null) {
+            process(node, null, syncConfig);
         }
         else{
-            getNextMethod = cl.getDeclaredMethod("getNextRequest", RequestResponse.class);
-        }
+            Class<?> parentCl = Class.forName(node.parent().data());
+            BasePostman parentTraverseObject = (BasePostman) parentCl.getConstructor().newInstance();
 
-        Method isCompleteMethod = cl.getDeclaredMethod("isComplete", RequestResponse.class);
-        RequestResponse requestResponse = new RequestResponse();
-        requestResponse.setConnectorName(node.data());
-
-        while(Boolean.FALSE.equals((Boolean)isCompleteMethod.invoke(null, requestResponse))){
-            if(node.parent() != null){
-                requestResponse = (RequestResponse) getNextMethod.invoke(null, requestResponse, Class.forName(node.parent().data()));
-            }
-            else{
-                requestResponse = (RequestResponse) getNextMethod.invoke(null, requestResponse);
+            Iterator<String> it = parentTraverseObject.getResult().iterator();
+            while (it.hasNext()){
+                process(node, objectMapper.readTree(it.next()), syncConfig);
             }
 
-            requestResponse.setConnectorName(node.data());
-            requestResponse = getObject(requestResponse);
-
-            List<? extends BaseConnector> listOfObjects = objectMapper.readValue(requestResponse.getResponse().body(), objectMapper.getTypeFactory().constructType(List.class, cl));
-            listOfObjects.stream().forEach(s -> System.out.println(s));
         }
 
     }
@@ -65,5 +55,59 @@ public class Traverser {
             e.printStackTrace();
             return requestResponse;
         }
+    }
+
+    public static HashMap<String, String> getBeanAndAssetByPostManClass(Class<?> postManClass, HashMap<String, String> syncConfig){
+
+        String postmanClassName = postManClass.getName().substring(postManClass.getName().lastIndexOf('.') + 1);
+
+        HashMap<String, String> data = new HashMap<>();
+        data.put("postman", Constant.POSTMAN_PATH + syncConfig.get("service") + "." + postmanClassName);
+        data.put("bean", Constant.BEAN_PATH + syncConfig.get("service") + "." + postmanClassName);
+
+        return data;
+    }
+
+    private static void process(TreeNode<String> node, JsonNode parentNodeData, HashMap<String, String> syncConfig){
+
+        try{
+            Class<?> cl = Class.forName(node.data());
+            ObjectMapper objectMapper = new ObjectMapper();
+            RequestResponse requestResponse = new RequestResponse();
+            BasePostman basePostman = (BasePostman) cl.getConstructor().newInstance();
+
+            while (!basePostman.isComplete(requestResponse)) {
+                requestResponse = basePostman.getNextUrl(requestResponse, parentNodeData);
+                getObject(requestResponse);
+                JsonNode jNode = objectMapper.readTree(requestResponse.getResponse().body());
+
+                Iterator<JsonNode> iterator = jNode.iterator();
+                while (iterator.hasNext()) {
+
+                    jNode = iterator.next();
+                    ObjectNode o = (ObjectNode) jNode;
+                    HashMap<String, String> nodeMetaData = getBeanAndAssetByPostManClass(cl, syncConfig);
+                    o.put("type", nodeMetaData.get("bean"));
+                    BaseBean baseBean = objectMapper.readValue(o.toString(), BaseBean.class);
+
+                    if (baseBean.filter()) {
+                        baseBean.transform();
+                        baseBean.setParentNode(parentNodeData);
+                        DiscoveryObject discoveryObject = new DiscoveryObject(nodeMetaData.get("bean"), baseBean);
+
+                        // Here push this to queue for processing by Processor
+                        Infra.kafka.add(discoveryObject);
+
+                        // Here save this as well so that it can be used to process its child
+                        String s = objectMapper.writeValueAsString(baseBean);
+                        basePostman.saveResult(s);
+                    }
+                }
+            }
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
+
     }
 }

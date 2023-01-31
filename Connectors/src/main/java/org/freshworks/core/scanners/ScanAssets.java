@@ -3,7 +3,8 @@ package org.freshworks.core.scanners;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.scalified.tree.TreeNode;
-import config_items.BaseConfigItem;
+import org.freshworks.Constant;
+import org.freshworks.assets.BaseAsset;
 import org.freshworks.core.utils.Utility;
 import org.reflections.Reflections;
 import org.reflections.util.ClasspathHelper;
@@ -17,33 +18,31 @@ import static org.freshworks.Constants.DAG_MAX_HEIGHT;
 import static org.reflections.scanners.Scanners.SubTypes;
 import static org.reflections.util.ReflectionUtilsPredicates.withNamePrefix;
 
-public class ScanConfigItem {
+public class ScanAssets {
 
-    public Multimap<String, String> scanner(ArrayList<HashMap<String, String>> connectors, HashMap<String, TreeNode<String>> dagMap){
+
+    public Multimap<String, String> scanner(HashMap<String, String> sysConfig, HashMap<String, TreeNode<String>> dagMap){
 
         Multimap<String, String> connectorConfigItemTable = ArrayListMultimap.create();
 
-        for (HashMap<String, String> connector : connectors) {
 
 //            Creation of the config item table for the given config item and connector.
 //            As of now we have just Software class
-            Reflections reflections = new Reflections( new ConfigurationBuilder().
-                    setUrls(ClasspathHelper.forPackage(connector.entrySet().iterator().next().getValue())).
-                    filterInputsBy(new FilterBuilder().includePackage(connector.entrySet().iterator().next().getValue()))
-            );
+        Reflections reflections = new Reflections( new ConfigurationBuilder().
+                setUrls(ClasspathHelper.forPackage(Constant.ASSET_PATH + sysConfig.get("service"))).
+                filterInputsBy(new FilterBuilder().includePackage(Constant.ASSET_PATH + sysConfig.get("service")))
+        );
 
-            Set<Class<?>> steps = reflections.get(SubTypes.of(BaseConfigItem.class).
-                    filter(withNamePrefix(connector.entrySet().iterator().next().getValue()))
-                    .asClass());
+        Set<Class<?>> steps = reflections.get(SubTypes.of(BaseAsset.class).
+                filter(withNamePrefix(Constant.ASSET_PATH + sysConfig.get("service")))
+                .asClass());
 
-            for (Class<?> configItem : steps) {
-                ArrayList<String> dependentClassList = findDependencyOfConfigItem(Utility.getAllSetters(configItem), connector.entrySet().iterator().next().getKey(), dagMap);
-                for (String dependent :
-                        dependentClassList) {
-                    connectorConfigItemTable.put(configItem.getName(), dependent);
-                }
+        for (Class<?> configItem : steps) {
+            ArrayList<String> dependentClassList = findDependencyOfConfigItem(Utility.getAllSetters(configItem), Constant.ASSET_PATH + sysConfig.get("service"), dagMap);
+            for (String dependent :
+                    dependentClassList) {
+                connectorConfigItemTable.put(configItem.getName(), dependent);
             }
-
         }
 
         return connectorConfigItemTable;

@@ -2,9 +2,9 @@ package org.freshworks.faker;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.freshworks.connectors.box.Application;
-import org.freshworks.connectors.box.Usage;
-import org.freshworks.connectors.box.User;
+import org.freshworks.beans.box.Application;
+import org.freshworks.beans.box.Usage;
+import org.freshworks.beans.box.User;
 import org.freshworks.core.model.DiscoveryObject;
 
 public class BoxFaker {
@@ -30,7 +30,7 @@ public class BoxFaker {
         app.setId(faker.name().name());
 
 
-        Usage usage = new Usage(app);
+        Usage usage = new Usage();
         usage.setUsage(faker.name().fullName());
         usage.setLogin(Integer.toString(faker.number().numberBetween(0,10000)));
         usage.setId(faker.name().fullName());
@@ -49,7 +49,7 @@ public class BoxFaker {
         app.setId(faker.name().name());
 
 
-        User user = new User(app);
+        User user = new User();
         user.setId(Integer.toString(faker.number().numberBetween(0,10000)));
         user.setName(faker.name().fullName());
         user.setAddress(faker.address().fullAddress());

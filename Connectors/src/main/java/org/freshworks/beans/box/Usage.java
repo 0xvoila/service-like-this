@@ -1,31 +1,24 @@
-package org.freshworks.connectors.box;
+package org.freshworks.beans.box;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import org.freshworks.connectors.BaseConnector;
+import com.fasterxml.jackson.databind.JsonNode;
+import org.freshworks.beans.BaseBean;
 import org.freshworks.core.model.RequestResponse;
-
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.http.HttpRequest;
 
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonTypeName("org.freshworks.connectors.box.Usage")
+@JsonTypeName("org.freshworks.beans.box.Usage")
 
-public class Usage implements BaseConnector {
+public class Usage extends BaseBean {
 
     String id;
     String usage;
     String login;
-    Application application;
+    JsonNode parentNode;
 
     public Usage(){
 
-    }
-
-    public Usage(Application application){
-        this.application = application;
     }
 
     public String getId() {
@@ -52,15 +45,29 @@ public class Usage implements BaseConnector {
         this.login = login;
     }
 
-    public static RequestResponse getNextRequest(RequestResponse requestResponse, Application app ) throws URISyntaxException {
-
-        HttpRequest request = requestResponse.getRequest();
-        request = HttpRequest.newBuilder(new URI("https://jsonplaceholder.typicode.com/posts")).GET().build();
-        requestResponse.setRequest(request);
-        return requestResponse;
-    }
 
     public static Boolean isComplete(RequestResponse requestResponse){
         return false;
+    }
+
+    @Override
+    public Boolean filter() {
+        if(this.id == null){
+            return false;
+        }
+        else{
+            return true;
+        }
+    }
+
+    @Override
+    public void transform() {
+
+    }
+
+    @Override
+    public void setParentNode(JsonNode parentJSONNode) {
+
+        this.parentNode = parentJSONNode;
     }
 }

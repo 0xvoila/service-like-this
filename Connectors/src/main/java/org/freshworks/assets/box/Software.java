@@ -1,13 +1,13 @@
-package org.freshworks.configitems.box;
+package org.freshworks.assets.box;
 
-import config_items.BaseConfigItem;
-import org.freshworks.connectors.box.Application;
-import org.freshworks.connectors.box.Usage;
-import org.freshworks.connectors.box.User;
+import org.freshworks.assets.BaseAsset;
+import org.freshworks.beans.box.Application;
+import org.freshworks.beans.box.Usage;
+import org.freshworks.beans.box.User;
 import org.freshworks.core.Annotations.FreshLookup;
 
 @FreshLookup(leftClass = User.class, rightClass = Usage.class, leftClassField = "id", rightClassField = "login", join_type = "inner")
-public class Software extends BaseConfigItem {
+public class Software extends BaseAsset {
 
     String id;
     String softwareName;

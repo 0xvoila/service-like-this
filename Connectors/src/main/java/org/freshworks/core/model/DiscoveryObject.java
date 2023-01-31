@@ -1,25 +1,19 @@
 package org.freshworks.core.model;
 
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import org.freshworks.connectors.BaseConnector;
-import org.freshworks.connectors.box.Usage;
-import org.freshworks.connectors.box.User;
-import org.freshworks.connectors.okta.Application;
-import org.freshworks.connectors.okta.ServicePrincipal;
-
+import org.freshworks.beans.BaseBean;
 
 
 public class DiscoveryObject {
 
     String connectorName;
-    BaseConnector connectorClass;
+    BaseBean baseBean;
 
     public DiscoveryObject(){
 
     }
-    public DiscoveryObject(String connectorName, BaseConnector connectorClass){
+    public DiscoveryObject(String connectorName, BaseBean baseBean){
         this.connectorName = connectorName;
-        this.connectorClass = connectorClass;
+        this.baseBean = baseBean;
     }
 
     public String getConnectorName() {
@@ -30,11 +24,11 @@ public class DiscoveryObject {
         this.connectorName = connectorName;
     }
 
-    public BaseConnector getConnectorClass() {
-        return connectorClass;
+    public BaseBean getConnectorClass() {
+        return baseBean;
     }
 
-    public void setConnectorClass(BaseConnector connectorClass) {
-        this.connectorClass = connectorClass;
+    public void setConnectorClass(BaseBean baseBean) {
+        this.baseBean = baseBean;
     }
 }

@@ -2,12 +2,11 @@ package org.freshworks.core.main;
 
 import com.google.common.collect.Multimap;
 import com.scalified.tree.TreeNode;
-import org.freshworks.core.scanners.ScanConfigItem;
-import org.freshworks.core.scanners.ScanConnector;
+import org.freshworks.core.scanners.ScanAssets;
+import org.freshworks.core.scanners.ScanBeans;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.util.*;
 
@@ -23,29 +22,22 @@ public class Main
 
     public static void main( String[] args ) throws IOException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException, ClassNotFoundException, NoSuchFieldException, URISyntaxException {
 
-        ArrayList<HashMap<String, String>> connectorConfig = new ArrayList<>();
-        HashMap<String, String> x = new HashMap<>();
-        x.put("org.freshworks.connectors.box", "org.freshworks.configitems.box");
-        connectorConfig.add(x);
-//        x = new HashMap<>();
-//        x.put("org.freshworks.connectors.onelogin", "org.freshworks.configitems.onelogin");
-//        connectorConfig.add(x);
+        HashMap<String, String> syncConfig = new HashMap<>();
+        syncConfig.put("transaction_id", "11223");
+        syncConfig.put("service", "box");
+        syncConfig.put("params", "123");
 
         Main main = new Main();
 
-        ScanConnector scanConnector = new ScanConnector();
-        main.dagMap = scanConnector.scanner(connectorConfig);
+        ScanBeans scanBeans = new ScanBeans();
+        main.dagMap = scanBeans.scanner(syncConfig);
 
-        ScanConfigItem scanConfigItem = new ScanConfigItem();
-        main.connectorConfigItemTable = scanConfigItem.scanner(connectorConfig,main.dagMap);
+        ScanAssets scanAssets = new ScanAssets();
+        main.connectorConfigItemTable = scanAssets.scanner(syncConfig,main.dagMap);
 
-//        Processor processor = new Processor(main.connectorConfigItemTable);
-//        processor.process();
-
-
-        Iterator<TreeNode<String>> it = main.dagMap.get("org.freshworks.connectors.box").iterator();
+        Iterator<TreeNode<String>> it = main.dagMap.get(syncConfig.get("service")).iterator();
         while(it.hasNext()){
-            Traverser.traverse(it.next());
+            Traverser.traverse(it.next(), syncConfig);
         }
     }
 }
