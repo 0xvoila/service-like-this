@@ -84,16 +84,4 @@ public class ScanBeans {
             return freshHierarchy.parentClass();
         }
     }
-
-    public Class<?>[] getChildClass(Class<?> clazz){
-
-        FreshHierarchy freshHierarchy = clazz.getAnnotation(FreshHierarchy.class);
-        if(freshHierarchy.parentClass().getName().equals(Void.class.getName())){
-            return null;
-        }
-        else{
-            return freshHierarchy.childClass();
-        }
-    }
-
 }

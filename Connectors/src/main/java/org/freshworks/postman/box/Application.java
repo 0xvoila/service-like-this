@@ -13,7 +13,7 @@ import java.util.ArrayList;
 
 // This is suppose to be the singleton objects
 
-@FreshHierarchy(childClass = {User.class, Usage.class})
+@FreshHierarchy(parentClass = Void.class)
 public class Application extends BasePostman {
 
     ArrayList<String> listOfApplication = new ArrayList<>();

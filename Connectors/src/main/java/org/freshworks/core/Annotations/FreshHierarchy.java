@@ -9,6 +9,5 @@ import java.lang.annotation.*;
 public @interface FreshHierarchy {
 
     Class<?> parentClass() default Void.class;
-    Class<?>[] childClass() default Void.class;
 }
 
