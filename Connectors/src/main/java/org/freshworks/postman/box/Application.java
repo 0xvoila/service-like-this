@@ -18,6 +18,7 @@ public class Application extends BasePostman {
 
     ArrayList<String> listOfApplication = new ArrayList<>();
 
+
     @Override
     public Boolean filter(RequestResponse currentRequest, JsonNode... parentJsonObject) {
         return null;

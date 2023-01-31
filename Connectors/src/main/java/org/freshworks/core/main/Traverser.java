@@ -23,6 +23,7 @@ import java.util.Iterator;
 
 public class Traverser {
 
+    static HashMap<String, BasePostman> singletonObjects = new HashMap<>();
 
     public static void traverse(TreeNode<String> node, HashMap<String, String> syncConfig) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException, URISyntaxException, IOException, InstantiationException {
 
@@ -32,8 +33,16 @@ public class Traverser {
             process(node, null, syncConfig);
         }
         else{
-            Class<?> parentCl = Class.forName(node.parent().data());
-            BasePostman parentTraverseObject = (BasePostman) parentCl.getConstructor().newInstance();
+            BasePostman parentTraverseObject = null;
+
+            if(singletonObjects.get(node.parent().data()) != null){
+                parentTraverseObject = singletonObjects.get(node.parent().data());
+            }
+            else{
+                Class<?> parentCl = Class.forName(node.parent().data());
+                parentTraverseObject = (BasePostman) parentCl.getConstructor().newInstance();
+                singletonObjects.put(node.parent().data(), parentTraverseObject);
+            }
 
             Iterator<String> it = parentTraverseObject.getResult().iterator();
             while (it.hasNext()){
@@ -74,17 +83,25 @@ public class Traverser {
             Class<?> cl = Class.forName(node.data());
             ObjectMapper objectMapper = new ObjectMapper();
             RequestResponse requestResponse = new RequestResponse();
-            BasePostman basePostman = (BasePostman) cl.getConstructor().newInstance();
 
-            while (!basePostman.isComplete(requestResponse)) {
+            BasePostman basePostman = null;
+            if(singletonObjects.get(node.data()) != null){
+                basePostman = singletonObjects.get(node.data());
+            }
+            else{
+                basePostman = (BasePostman) cl.getConstructor().newInstance();
+                singletonObjects.put(node.data(), basePostman);
+            }
+
+            while (Boolean.FALSE.equals(basePostman.isComplete(requestResponse))) {
                 requestResponse = basePostman.getNextUrl(requestResponse, parentNodeData);
                 getObject(requestResponse);
-                JsonNode jNode = objectMapper.readTree(requestResponse.getResponse().body());
+                JsonNode jNodeList = objectMapper.readTree(requestResponse.getResponse().body());
 
-                Iterator<JsonNode> iterator = jNode.iterator();
+                Iterator<JsonNode> iterator = jNodeList.iterator();
                 while (iterator.hasNext()) {
 
-                    jNode = iterator.next();
+                    JsonNode jNode = iterator.next();
                     ObjectNode o = (ObjectNode) jNode;
                     HashMap<String, String> nodeMetaData = getBeanAndAssetByPostManClass(cl, syncConfig);
                     o.put("type", nodeMetaData.get("bean"));

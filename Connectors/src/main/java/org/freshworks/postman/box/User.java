@@ -15,6 +15,7 @@ public class User extends BasePostman {
 
     ArrayList<String> listOfUsers = new ArrayList<>();
 
+
     @Override
     public Boolean filter(RequestResponse currentRequest, JsonNode... parentJsonObject) {
         return null;
