@@ -2,14 +2,12 @@ package org.freshworks.core.scanners;
 
 import com.scalified.tree.TreeNode;
 import com.scalified.tree.multinode.ArrayMultiTreeNode;
-import com.sun.source.tree.Tree;
-import org.freshworks.beans.BaseBean;
 import org.freshworks.core.Annotations.FreshHierarchy;
-import org.freshworks.postman.BasePostman;
+import org.freshworks.steps.BaseStep;
 import org.reflections.Reflections;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
-import org.reflections.util.FilterBuilder;
+
 import java.util.*;
 import static org.reflections.scanners.Scanners.SubTypes;
 
@@ -38,7 +36,7 @@ public class ScanBeans {
         TreeNode<String> root = new ArrayMultiTreeNode<>(null);
 
         Set<Class<?>> steps =
-                reflections.get(SubTypes.of(BasePostman.class).asClass());
+                reflections.get(SubTypes.of(BaseStep.class).asClass());
 
         for (Class<?> step: steps) {
             Class<?> parentClass = getParentClass(step);

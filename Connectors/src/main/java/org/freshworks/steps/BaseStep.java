@@ -1,12 +1,11 @@
-package org.freshworks.postman;
+package org.freshworks.steps;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.freshworks.core.model.RequestResponse;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 
-public abstract class BasePostman {
+public abstract class BaseStep {
 
     public abstract RequestResponse start();
 

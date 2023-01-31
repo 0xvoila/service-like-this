@@ -1,9 +1,9 @@
-package org.freshworks.postman.box;
+package org.freshworks.steps.box;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.freshworks.core.Annotations.FreshHierarchy;
 import org.freshworks.core.model.RequestResponse;
-import org.freshworks.postman.BasePostman;
+import org.freshworks.steps.BaseStep;
 
 import java.net.URI;
 import java.net.http.HttpRequest;
@@ -11,7 +11,7 @@ import java.util.ArrayList;
 
 // This is suppose to be the singleton objects
 @FreshHierarchy(parentClass = Application.class)
-public class User extends BasePostman {
+public class User extends BaseStep {
 
     ArrayList<String> listOfUsers = new ArrayList<>();
 

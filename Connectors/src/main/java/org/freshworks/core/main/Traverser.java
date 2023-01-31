@@ -5,13 +5,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.scalified.tree.TreeNode;
-import org.freshworks.Constants;
 import org.freshworks.Infra;
 import org.freshworks.beans.BaseBean;
 import org.freshworks.core.model.DiscoveryObject;
 import org.freshworks.core.model.RequestResponse;
 import org.freshworks.core.utils.Utility;
-import org.freshworks.postman.BasePostman;
+import org.freshworks.steps.BaseStep;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -23,7 +22,7 @@ import java.util.Iterator;
 
 public class Traverser {
 
-    static HashMap<String, BasePostman> singletonObjects = new HashMap<>();
+    static HashMap<String, BaseStep> singletonObjects = new HashMap<>();
 
     public static void traverse(TreeNode<String> node, HashMap<String, String> syncConfig) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException, URISyntaxException, IOException, InstantiationException {
 
@@ -33,14 +32,14 @@ public class Traverser {
             process(node, null, syncConfig);
         }
         else{
-            BasePostman parentTraverseObject = null;
+            BaseStep parentTraverseObject = null;
 
             if(singletonObjects.get(node.parent().data()) != null){
                 parentTraverseObject = singletonObjects.get(node.parent().data());
             }
             else{
                 Class<?> parentCl = Class.forName(node.parent().data());
-                parentTraverseObject = (BasePostman) parentCl.getConstructor().newInstance();
+                parentTraverseObject = (BaseStep) parentCl.getConstructor().newInstance();
                 singletonObjects.put(node.parent().data(), parentTraverseObject);
             }
 
@@ -73,18 +72,18 @@ public class Traverser {
             Class<?> cl = Class.forName(node.data());
             ObjectMapper objectMapper = new ObjectMapper();
 
-            BasePostman basePostman = null;
+            BaseStep baseStep = null;
             if(singletonObjects.get(node.data()) != null){
-                basePostman = singletonObjects.get(node.data());
+                baseStep = singletonObjects.get(node.data());
             }
             else{
-                basePostman = (BasePostman) cl.getConstructor().newInstance();
-                singletonObjects.put(node.data(), basePostman);
+                baseStep = (BaseStep) cl.getConstructor().newInstance();
+                singletonObjects.put(node.data(), baseStep);
             }
 
-            RequestResponse requestResponse = basePostman.start();
-            while (Boolean.FALSE.equals(basePostman.isComplete(requestResponse))) {
-                requestResponse = basePostman.getNextUrl(requestResponse, parentNodeData);
+            RequestResponse requestResponse = baseStep.start();
+            while (Boolean.FALSE.equals(baseStep.isComplete(requestResponse))) {
+                requestResponse = baseStep.getNextUrl(requestResponse, parentNodeData);
                 getObject(requestResponse);
                 JsonNode jNodeList = objectMapper.readTree(requestResponse.getResponse().body());
 
@@ -107,7 +106,7 @@ public class Traverser {
 
                         // Here save this as well so that it can be used to process its child
                         String s = objectMapper.writeValueAsString(baseBean);
-                        basePostman.saveResult(s);
+                        baseStep.saveResult(s);
                     }
                 }
             }

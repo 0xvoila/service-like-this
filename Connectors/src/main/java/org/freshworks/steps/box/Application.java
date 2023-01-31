@@ -1,28 +1,29 @@
-package org.freshworks.postman.box;
+package org.freshworks.steps.box;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.freshworks.core.Annotations.FreshHierarchy;
 import org.freshworks.core.model.RequestResponse;
-import org.freshworks.postman.BasePostman;
+import org.freshworks.steps.BaseStep;
 
 import java.net.URI;
 import java.net.http.HttpRequest;
 import java.util.ArrayList;
 
-// This is suppose to be the singleton objects
-@FreshHierarchy(parentClass = Application.class)
-public class Usage extends BasePostman {
 
-    ArrayList<String> listOfUsage = new ArrayList<>();
+// This is suppose to be the singleton objects
+
+@FreshHierarchy(parentClass = Void.class)
+public class Application extends BaseStep {
+
+    ArrayList<String> listOfApplication = new ArrayList<>();
 
 
     @Override
     public RequestResponse start() {
-
         RequestResponse requestResponse = new RequestResponse();
         try{
-            HttpRequest request = requestResponse.getRequest();
-            request = HttpRequest.newBuilder(new URI("http://localhost:4000/usage")).GET().build();
+            HttpRequest request;
+            request = HttpRequest.newBuilder(new URI("http://localhost:4000/apps")).GET().build();
             requestResponse.setRequest(request);
             return requestResponse;
         }
@@ -39,9 +40,10 @@ public class Usage extends BasePostman {
 
     @Override
     public RequestResponse getNextUrl(RequestResponse requestResponse, JsonNode... parentJsonObject) {
+
         try{
-            HttpRequest request = requestResponse.getRequest();
-            request = HttpRequest.newBuilder(new URI("http://localhost:4000/usage")).GET().build();
+            HttpRequest request;
+            request = HttpRequest.newBuilder(new URI("http://localhost:4000/apps")).GET().build();
             requestResponse.setRequest(request);
             return requestResponse;
         }
@@ -53,7 +55,7 @@ public class Usage extends BasePostman {
 
     @Override
     public Boolean isComplete(RequestResponse currentRequest, JsonNode... parentJsonObject) {
-        if(this.listOfUsage.size() > 3){
+        if(this.listOfApplication.size() > 4){
             return true;
         }
         else{
@@ -63,11 +65,13 @@ public class Usage extends BasePostman {
 
     @Override
     public void saveResult(String s) {
-        listOfUsage.add(s);
+        listOfApplication.add(s);
     }
 
     @Override
-    public ArrayList<String> getResult() {
-        return listOfUsage;
+    public ArrayList<String> getResult( ) {
+        return listOfApplication;
     }
+
+
 }
