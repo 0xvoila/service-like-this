@@ -173,10 +173,13 @@ public class User extends BaseBean {
     public void transform() {
 
     }
-
     @Override
     public void setParentNode(JsonNode parentJSONNode) {
 
         this.parentNode = parentJSONNode;
+    }
+
+    public JsonNode getParentNode() {
+        return parentNode;
     }
 }

@@ -20,7 +20,8 @@ public abstract class BaseBean {
 
     public abstract Boolean filter();
     public abstract void transform();
-
     public abstract void setParentNode(JsonNode parentJSONNode);
+
+    public abstract JsonNode getParentNode();
 
 }

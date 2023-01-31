@@ -70,4 +70,8 @@ public class Usage extends BaseBean {
 
         this.parentNode = parentJSONNode;
     }
+
+    public JsonNode getParentNode() {
+        return parentNode;
+    }
 }

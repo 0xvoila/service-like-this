@@ -58,4 +58,7 @@ public class Application extends BaseBean {
         this.parentNode = parentJSONNode;
     }
 
+    public JsonNode getParentNode() {
+        return parentNode;
+    }
 }
