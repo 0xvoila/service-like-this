@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Multimap;
+import org.freshworks.Constants;
 import org.freshworks.Infra;
 import org.freshworks.core.Annotations.FreshLookup;
 import org.freshworks.core.utils.Utility;
@@ -33,8 +34,8 @@ public class Processor {
         while(true){
             String s = Infra.kafka.take();
             JsonNode jNode = objectMapper.readTree(s);
-            String mainStepPathAsString = jNode.get("baseBean").get(JsonTypeInfo_As_PROPERTY).asText();
-            String mainStepObjectAsString = jNode.get("baseBean").toString();
+            String mainStepPathAsString = jNode.get(Constants.BASE_BEAN).get(JsonTypeInfo_As_PROPERTY).asText();
+            String mainStepObjectAsString = jNode.get(Constants.BASE_BEAN).toString();
             ArrayList<String> unwrappedStepsOfMainStep =  unwrapMainStep(mainStepObjectAsString);
             for(String  configItem: connectorConfigItemTable.keys()) {
 
@@ -119,7 +120,9 @@ public class Processor {
 
     public String getLookupClassName(Class<?> masterClass, FreshLookup freshLookup){
 
-        String className = masterClass.getName();
+        // Here lookup class name could be same as that of master class name.
+        // Here lookup class name could be different masterclass but lookup class would be the nested class of the master class
+
         if ( freshLookup.leftClass().getName().split(".")[0].equals(masterClass.getName())){
             return freshLookup.leftClass().getName();
         }
