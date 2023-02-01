@@ -76,7 +76,7 @@ public class Processor {
                         }
                     }
 
-                    if(found){
+                    if(Boolean.TRUE.equals(found)){
                         List<Method> setterMethods = Utility.getAllSetters(configItemClass);
                         Object configItemClassObject = configItemClass.newInstance();
                         unwrappedStepsOfMainStep = new ArrayList<>();
@@ -108,8 +108,11 @@ public class Processor {
         if ( freshLookup.leftClass().getName().equals(className)){
             return freshLookup.leftClassField();
         }
-        else {
+        else if(freshLookup.rightClass().getName().equals(className)){
             return freshLookup.rightClassField();
+        }
+        else{
+            return null;
         }
     }
 

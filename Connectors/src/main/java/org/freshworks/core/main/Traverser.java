@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.scalified.tree.TreeNode;
+import org.freshworks.Constants;
 import org.freshworks.Infra;
 import org.freshworks.beans.BaseBean;
 import org.freshworks.core.model.DiscoveryObject;
@@ -94,7 +95,7 @@ public class Traverser {
                     JsonNode jNode = iterator.next();
                     ObjectNode o = (ObjectNode) jNode;
                     HashMap<String, String> nodeMetaData = Utility.getMetaDataByClass(cl, syncConfig);
-                    o.put("type", nodeMetaData.get("bean"));
+                    o.put(Constants.JsonTypeInfo_As_PROPERTY, nodeMetaData.get("bean"));
                     BaseBean baseBean = objectMapper.readValue(o.toString(), BaseBean.class);
 
                     if (Boolean.TRUE.equals(baseBean.filter())) {

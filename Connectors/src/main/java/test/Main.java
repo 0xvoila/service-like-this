@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.freshworks.beans.BaseBean;
+import org.freshworks.beans.box.Usage;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -16,31 +17,14 @@ import static java.lang.Class.forName;
 
 public class Main {
 
-    public static void main(String args[]){
+    public static void main(String args[]) {
         ObjectMapper objectMapper = new ObjectMapper();
 
+        String s = "{\"source\": {\"type\": \"user\",\"id\": \"20341833468\",\"name\": \"Mohankumar M\",\"login\": \"mohan.fwtest@gmail.com\"},\"created_by\": {\"type\": \"user\",\"id\": \"20341833468\",\"name\": \"Mohankumar M\",\"login\": \"mohan.fwtest@gmail.com\"},\"action_by\": null,\"created_at\": \"2022-08-24T05:27:29-07:00\",\"event_type\": \"ADD_LOGIN_ACTIVITY_DEVICE\",\"ip_address\": \"163.116.195.118\",\"session_id\": null,\"@class\":\"org.freshworks.beans.box.Usage\" ,\"additional_details\": null}";
+
         try{
-            HttpRequest request = HttpRequest.newBuilder(new URI("http://localhost:4000/apps")).GET().build();
-            HttpClient httpClient = HttpClient.newHttpClient();
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            JsonNode jNode = objectMapper.readTree(response.body());
-            ObjectNode objectNode = objectMapper.createObjectNode();
-//            objectNode.put("BaseBean", jNode);
-//            System.out.println(objectNode.toString());
-
-            Iterator<JsonNode> it = jNode.iterator();
-            while(it.hasNext()){
-                JsonNode j = it.next();
-                ObjectNode o = (ObjectNode) j;
-                o.put("type", "org.freshworks.connectors.box.Application");
-                BaseBean bcs = objectMapper.readValue(o.toString(), BaseBean.class);
-
-//                User user = new User();
-//                user.setApplication(bcs);
-            }
-
-
-
+            Usage usage = objectMapper.readValue(s, Usage.class);
+            System.out.println(usage.getCreated_at());
         }
         catch(Exception e){
             e.printStackTrace();

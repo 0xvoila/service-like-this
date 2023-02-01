@@ -1,13 +1,11 @@
 package org.freshworks.assets.box;
 
 import org.freshworks.assets.BaseAsset;
-import org.freshworks.beans.box.CreatedBy;
-import org.freshworks.beans.box.Source;
 import org.freshworks.beans.box.Usage;
 import org.freshworks.beans.box.User;
 import org.freshworks.core.Annotations.FreshLookup;
 
-@FreshLookup(leftClass = User.class, rightClass = CreatedBy.class, leftClassField = "login", rightClassField = "login", join_type = "inner")
+@FreshLookup(leftClass = User.class, rightClass = Usage.Source.class, leftClassField = "login", rightClassField = "login", join_type = "inner")
 public class Software extends BaseAsset {
 
     String name;
