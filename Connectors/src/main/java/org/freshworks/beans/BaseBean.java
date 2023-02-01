@@ -13,7 +13,6 @@ import static org.freshworks.Constants.JsonTypeInfo_As_PROPERTY;
 @JsonSubTypes({
 
         @JsonSubTypes.Type(value = org.freshworks.beans.box.User.class, name = "org.freshworks.beans.box.User"),
-        @JsonSubTypes.Type(value = org.freshworks.beans.box.Application.class, name = "org.freshworks.beans.box.Application"),
         @JsonSubTypes.Type(value = org.freshworks.beans.box.Usage.class, name = "org.freshworks.beans.box.Usage")
 })
 public abstract class BaseBean {

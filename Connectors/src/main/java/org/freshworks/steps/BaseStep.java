@@ -6,20 +6,42 @@ import org.freshworks.core.model.RequestResponse;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class BaseStep {
+public class BaseStep implements StepInterface{
 
-    public abstract RequestResponse start();
+    @Override
+    public RequestResponse start() {
+        return null;
+    }
 
-    public abstract Boolean filter(RequestResponse currentRequest, JsonNode... parentJsonObject);
+    @Override
+    public Boolean filter(RequestResponse currentRequest, JsonNode... parentJsonObject) {
+        return null;
+    }
 
-    public abstract RequestResponse getNextRequest(RequestResponse currentRequest, JsonNode... parentJsonObject);
+    @Override
+    public RequestResponse getNextRequest(RequestResponse currentRequest, JsonNode... parentJsonObject) {
+        return null;
+    }
 
-    public abstract Boolean isComplete(RequestResponse currentRequest, JsonNode... parentJsonObject);
+    @Override
+    public Boolean isComplete(RequestResponse currentRequest, JsonNode... parentJsonObject) {
+        return null;
+    }
 
-    public abstract void saveResult(String s);
+    @Override
+    public void saveResult(String s) {
 
-    public abstract List<String> getResult();
+    }
 
-    public abstract JsonNode parseResponse(JsonNode jsonNode);
+    @Override
+    public List<String> getResult() {
+        ArrayList<String> x = new ArrayList<String>();
+        x.add("");
+        return x;
+    }
 
+    @Override
+    public JsonNode parseResponse(JsonNode jsonNode) {
+        return null;
+    }
 }

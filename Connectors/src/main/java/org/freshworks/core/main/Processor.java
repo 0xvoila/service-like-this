@@ -170,21 +170,4 @@ public class Processor {
         return unwrappedStepClassMap;
     }
 
-    public String getFromKafka() throws JsonProcessingException {
-
-        Random rand = new Random();
-        int randomNum = rand.nextInt((100 - 2) + 1) + 2;
-
-        if ( randomNum < 50 ){
-            return BoxFaker.generateApplication();
-        }
-
-        else if ( randomNum > 50 && randomNum < 60){
-            return BoxFaker.generateUser();
-        }
-        else {
-            return BoxFaker.generateUsage();
-        }
-
-    }
 }

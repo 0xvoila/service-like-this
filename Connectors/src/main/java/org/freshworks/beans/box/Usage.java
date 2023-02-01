@@ -12,47 +12,44 @@ import org.freshworks.core.model.RequestResponse;
 
 public class Usage extends BaseBean {
 
-    String id;
-    String usage;
-    String login;
+    Source source;
+    CreatedBy created_by;
+
+    String created_at;
+
     JsonNode parentNode;
 
     public Usage(){
 
     }
 
-    public String getId() {
-        return id;
+    public Source getSource() {
+        return source;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void setSource(Source source) {
+        this.source = source;
     }
 
-    public String getUsage() {
-        return usage;
+    public CreatedBy getCreated_by() {
+        return created_by;
     }
 
-    public void setUsage(String usage) {
-        this.usage = usage;
+    public void setCreated_by(CreatedBy created_by) {
+        this.created_by = created_by;
     }
 
-    public String getLogin() {
-        return login;
+    public String getCreated_at() {
+        return created_at;
     }
 
-    public void setLogin(String login) {
-        this.login = login;
-    }
-
-
-    public static Boolean isComplete(RequestResponse requestResponse){
-        return false;
+    public void setCreated_at(String created_at) {
+        this.created_at = created_at;
     }
 
     @Override
     public Boolean filter() {
-        if(this.id == null){
+        if(this.getSource().id == null){
             return false;
         }
         else{

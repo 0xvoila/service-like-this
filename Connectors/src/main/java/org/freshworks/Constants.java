@@ -13,4 +13,5 @@ public class Constants {
     public final static String STEP_PATH = "org.freshworks.steps.";
     public final static String BEAN_PATH = "org.freshworks.beans.";
     public final static String ASSET_PATH = "org.freshworks.assets.";
+
 }

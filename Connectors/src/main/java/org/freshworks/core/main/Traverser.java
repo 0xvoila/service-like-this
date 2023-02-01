@@ -11,6 +11,7 @@ import org.freshworks.core.model.DiscoveryObject;
 import org.freshworks.core.model.RequestResponse;
 import org.freshworks.core.utils.Utility;
 import org.freshworks.steps.BaseStep;
+import org.freshworks.steps.StepInterface;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -22,24 +23,25 @@ import java.util.Iterator;
 
 public class Traverser {
 
-    static HashMap<String, BaseStep> singletonObjects = new HashMap<>();
+    static HashMap<String, StepInterface> singletonObjects = new HashMap<>();
 
     public static void traverse(TreeNode<String> node, HashMap<String, String> syncConfig) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException, URISyntaxException, IOException, InstantiationException {
 
         ObjectMapper objectMapper = new ObjectMapper();
 
-        if(node.parent() == null) {
-            process(node, null, syncConfig);
+        if(node.parent() == null && node.data().equals(BaseStep.class.getName())) {
+            return;
+//            process(node, null, syncConfig);
         }
         else{
-            BaseStep parentTraverseObject = null;
+            StepInterface parentTraverseObject = null;
 
             if(singletonObjects.get(node.parent().data()) != null){
                 parentTraverseObject = singletonObjects.get(node.parent().data());
             }
             else{
                 Class<?> parentCl = Class.forName(node.parent().data());
-                parentTraverseObject = (BaseStep) parentCl.getConstructor().newInstance();
+                parentTraverseObject = (StepInterface) parentCl.getConstructor().newInstance();
                 singletonObjects.put(node.parent().data(), parentTraverseObject);
             }
 
@@ -72,21 +74,20 @@ public class Traverser {
             Class<?> cl = Class.forName(node.data());
             ObjectMapper objectMapper = new ObjectMapper();
 
-            BaseStep baseStep = null;
+            StepInterface stepInterface = null;
             if(singletonObjects.get(node.data()) != null){
-                baseStep = singletonObjects.get(node.data());
+                stepInterface = singletonObjects.get(node.data());
             }
             else{
-                baseStep = (BaseStep) cl.getConstructor().newInstance();
-                singletonObjects.put(node.data(), baseStep);
+                stepInterface = (StepInterface) cl.getConstructor().newInstance();
+                singletonObjects.put(node.data(), stepInterface);
             }
 
-            RequestResponse requestResponse = baseStep.start();
-            while (Boolean.FALSE.equals(baseStep.isComplete(requestResponse))) {
-                requestResponse = baseStep.getNextRequest(requestResponse, parentNodeData);
+            while (true) {
+                RequestResponse requestResponse = stepInterface.start();
                 getObject(requestResponse);
                 JsonNode jNodeList = objectMapper.readTree(requestResponse.getResponse().body());
-                jNodeList = baseStep.parseResponse(jNodeList);
+                jNodeList = stepInterface.parseResponse(jNodeList);
                 Iterator<JsonNode> iterator = jNodeList.iterator();
                 while (iterator.hasNext()) {
 
@@ -106,8 +107,15 @@ public class Traverser {
 
                         // Here save this as well so that it can be used to process its child
                         String s = objectMapper.writeValueAsString(baseBean);
-                        baseStep.saveResult(s);
+                        stepInterface.saveResult(s);
                     }
+                }
+
+                if(Boolean.FALSE.equals(stepInterface.isComplete(requestResponse))){
+                    requestResponse = stepInterface.getNextRequest(requestResponse, parentNodeData);
+                }
+                else{
+                    break;
                 }
             }
         }

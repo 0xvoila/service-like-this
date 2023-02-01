@@ -5,9 +5,11 @@ import com.scalified.tree.multinode.ArrayMultiTreeNode;
 import org.freshworks.Constants;
 import org.freshworks.core.Annotations.FreshHierarchy;
 import org.freshworks.steps.BaseStep;
+import org.freshworks.steps.StepInterface;
 import org.reflections.Reflections;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
+import org.reflections.util.FilterBuilder;
 
 import java.util.*;
 import static org.reflections.scanners.Scanners.SubTypes;
@@ -30,12 +32,16 @@ public class ScanBeans {
     public TreeNode<String> createDAG(Reflections reflections){
 
         HashMap<String, TreeNode<String>> branchMap = new HashMap<>();
-        TreeNode<String> root = new ArrayMultiTreeNode<>(null);
+        TreeNode<String> root = new ArrayMultiTreeNode<>(BaseStep.class.getName());
 
         Set<Class<?>> steps =
-                reflections.get(SubTypes.of(BaseStep.class).asClass());
+                reflections.get(SubTypes.of(StepInterface.class).asClass());
 
         for (Class<?> step: steps) {
+
+            if(step.getName().equals(BaseStep.class.getName())){
+                continue;
+            }
             Class<?> parentClass = getParentClass(step);
 
             if(parentClass != null){
@@ -72,8 +78,8 @@ public class ScanBeans {
     public Class<?> getParentClass(Class<?> clazz){
 
         FreshHierarchy freshHierarchy = clazz.getAnnotation(FreshHierarchy.class);
-        if(freshHierarchy.parentClass().getName().equals(Void.class.getName())){
-            return null;
+        if(freshHierarchy.parentClass().getName().equals(BaseStep.class.getName())){
+            return BaseStep.class;
         }
         else{
             return freshHierarchy.parentClass();
