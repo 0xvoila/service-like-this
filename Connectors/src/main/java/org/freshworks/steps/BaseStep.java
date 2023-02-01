@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.freshworks.core.model.RequestResponse;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public abstract class BaseStep {
 
@@ -11,12 +12,14 @@ public abstract class BaseStep {
 
     public abstract Boolean filter(RequestResponse currentRequest, JsonNode... parentJsonObject);
 
-    public abstract RequestResponse getNextUrl(RequestResponse currentRequest, JsonNode... parentJsonObject);
+    public abstract RequestResponse getNextRequest(RequestResponse currentRequest, JsonNode... parentJsonObject);
 
     public abstract Boolean isComplete(RequestResponse currentRequest, JsonNode... parentJsonObject);
 
     public abstract void saveResult(String s);
 
-    public abstract ArrayList<String> getResult();
+    public abstract List<String> getResult();
+
+    public abstract JsonNode parseResponse(JsonNode jsonNode);
 
 }

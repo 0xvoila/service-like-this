@@ -37,7 +37,7 @@ public class User extends BaseStep {
     }
 
     @Override
-    public RequestResponse getNextUrl(RequestResponse requestResponse, JsonNode... parentJsonObject) {
+    public RequestResponse getNextRequest(RequestResponse requestResponse, JsonNode... parentJsonObject) {
         try{
             HttpRequest request = requestResponse.getRequest();
             request = HttpRequest.newBuilder(new URI("http://localhost:4000/users")).GET().build();
@@ -68,5 +68,11 @@ public class User extends BaseStep {
     @Override
     public ArrayList<String> getResult() {
         return listOfUsers;
+    }
+
+    @Override
+    public JsonNode parseResponse(JsonNode jsonNode) {
+
+        return jsonNode;
     }
 }

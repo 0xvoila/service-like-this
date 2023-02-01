@@ -83,10 +83,10 @@ public class Traverser {
 
             RequestResponse requestResponse = baseStep.start();
             while (Boolean.FALSE.equals(baseStep.isComplete(requestResponse))) {
-                requestResponse = baseStep.getNextUrl(requestResponse, parentNodeData);
+                requestResponse = baseStep.getNextRequest(requestResponse, parentNodeData);
                 getObject(requestResponse);
                 JsonNode jNodeList = objectMapper.readTree(requestResponse.getResponse().body());
-
+                jNodeList = baseStep.parseResponse(jNodeList);
                 Iterator<JsonNode> iterator = jNodeList.iterator();
                 while (iterator.hasNext()) {
 

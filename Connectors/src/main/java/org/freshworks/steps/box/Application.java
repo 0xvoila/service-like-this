@@ -8,6 +8,7 @@ import org.freshworks.steps.BaseStep;
 import java.net.URI;
 import java.net.http.HttpRequest;
 import java.util.ArrayList;
+import java.util.List;
 
 
 // This is suppose to be the singleton objects
@@ -39,7 +40,7 @@ public class Application extends BaseStep {
     }
 
     @Override
-    public RequestResponse getNextUrl(RequestResponse requestResponse, JsonNode... parentJsonObject) {
+    public RequestResponse getNextRequest(RequestResponse requestResponse, JsonNode... parentJsonObject) {
 
         try{
             HttpRequest request;
@@ -71,6 +72,12 @@ public class Application extends BaseStep {
     @Override
     public ArrayList<String> getResult( ) {
         return listOfApplication;
+    }
+
+    @Override
+    public JsonNode parseResponse(JsonNode jsonNode) {
+
+        return jsonNode;
     }
 
 
