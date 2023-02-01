@@ -57,7 +57,8 @@ public class Processor {
                     FreshLookup freshLookup = configItemClass.getAnnotation(FreshLookup.class);
                     Object mainStepClassObject = objectMapper.readValue(mainStepObjectAsString, Class.forName(mainStepPathAsString));
                     Class<?> mainStepClass = Class.forName(mainStepPathAsString);
-                    Method getterMethod = mainStepClass.getDeclaredMethod(GETTER_METHOD_PREFIX + getLookupField(mainStepClass, freshLookup).substring(0, 1).toUpperCase()
+                    Class<?> lookupStepClass = Class.forName(getLookupClassName(mainStepClass, freshLookup));
+                    Method getterMethod = lookupStepClass.getDeclaredMethod(GETTER_METHOD_PREFIX + getLookupField(mainStepClass, freshLookup).substring(0, 1).toUpperCase()
                             + getLookupField(mainStepClass, freshLookup).substring(1));
                     Object fieldValue = getterMethod.invoke(mainStepClassObject);
                     redis.put(mainStepPathAsString + "_" + fieldValue,mainStepObjectAsString);
@@ -112,6 +113,20 @@ public class Processor {
             return freshLookup.rightClassField();
         }
         else{
+            return null;
+        }
+    }
+
+    public String getLookupClassName(Class<?> masterClass, FreshLookup freshLookup){
+
+        String className = masterClass.getName();
+        if ( freshLookup.leftClass().getName().split(".")[0].equals(masterClass.getName())){
+            return freshLookup.leftClass().getName();
+        }
+        else if(freshLookup.rightClass().getName().split(".")[0].equals(masterClass.getName())){
+            return freshLookup.rightClass().getName();
+        }
+        else {
             return null;
         }
     }
