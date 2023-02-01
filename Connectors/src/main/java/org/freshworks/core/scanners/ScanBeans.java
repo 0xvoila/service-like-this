@@ -2,6 +2,7 @@ package org.freshworks.core.scanners;
 
 import com.scalified.tree.TreeNode;
 import com.scalified.tree.multinode.ArrayMultiTreeNode;
+import org.freshworks.Constants;
 import org.freshworks.core.Annotations.FreshHierarchy;
 import org.freshworks.steps.BaseStep;
 import org.reflections.Reflections;
@@ -13,17 +14,13 @@ import static org.reflections.scanners.Scanners.SubTypes;
 
 public class ScanBeans {
 
-    final static String POSTMAN_PATH = "org.freshworks.postman.";
-    final static String BEAN_PATH = "org.freshworks.bean.";
-    final static String ASSET_PATH = "org.freshworks.asset.";
-
     public HashMap<String, TreeNode<String>> scanner(HashMap<String, String> syncConfig){
 
         HashMap<String, TreeNode<String>> dagMap = new HashMap<>();
 
 //      Creation of the DAG for the given connector
         Reflections reflections = new Reflections(new ConfigurationBuilder().
-                setUrls(ClasspathHelper.forPackage(POSTMAN_PATH + syncConfig.get("service")))
+                setUrls(ClasspathHelper.forPackage(Constants.STEP_PATH + syncConfig.get("service")))
         );
         dagMap.put(syncConfig.get("service"), createDAG(reflections));
 

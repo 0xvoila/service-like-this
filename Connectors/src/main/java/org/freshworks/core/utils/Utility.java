@@ -26,7 +26,7 @@ public class Utility {
         String postmanClassName = clazz.getName().substring(clazz.getName().lastIndexOf('.') + 1);
 
         HashMap<String, String> data = new HashMap<>();
-        data.put("postman", Constants.POSTMAN_PATH + syncConfig.get("service") + "." + postmanClassName);
+        data.put("postman", Constants.STEP_PATH + syncConfig.get("service") + "." + postmanClassName);
         data.put("bean", Constants.BEAN_PATH + syncConfig.get("service") + "." + postmanClassName);
 
         return data;
