@@ -11,6 +11,9 @@ public class Software extends BaseAsset {
     String name;
     String created_at;
 
+    String applicationName = "Box";
+
+    Long getSpace_amount;
 
     public String getName() {
         return name;
@@ -26,5 +29,22 @@ public class Software extends BaseAsset {
 
     public void setCreated_at(Usage usage) {
         this.created_at = usage.getCreated_at();
+    }
+
+    public String getApplicationName() {
+
+        return applicationName;
+    }
+
+    public void setApplicationName(String applicationName) {
+        this.applicationName = "Box";
+    }
+
+    public Long getGetSpace_amount() {
+        return getSpace_amount;
+    }
+
+    public void setGetSpace_amount(User user) {
+        this.getSpace_amount = user.getSpace_amount();
     }
 }

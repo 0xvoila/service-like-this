@@ -59,10 +59,31 @@ public class Processor {
                     Object mainStepClassObject = objectMapper.readValue(mainStepObjectAsString, Class.forName(mainStepPathAsString));
                     Class<?> mainStepClass = Class.forName(mainStepPathAsString);
                     Class<?> lookupStepClass = Class.forName(getLookupClassName(mainStepClass, freshLookup));
-                    Method getterMethod = lookupStepClass.getDeclaredMethod(GETTER_METHOD_PREFIX + getLookupField(mainStepClass, freshLookup).substring(0, 1).toUpperCase()
-                            + getLookupField(mainStepClass, freshLookup).substring(1));
-                    Object fieldValue = getterMethod.invoke(mainStepClassObject);
-                    redis.put(mainStepPathAsString + "_" + fieldValue,mainStepObjectAsString);
+                    Class<?>[] nestedClassList = mainStepClass.getDeclaredClasses();
+
+                    Object fieldValue = null;
+                    if(nestedClassList.length > 0 && !lookupStepClass.getName().equals(mainStepClass.getName())){
+
+                        // It means that lookup step class is nested class of the main step class
+                        // Here extract the object of lookupStepClass from mainStepClassObject
+                        String[] lookupClassNameSplit = lookupStepClass.getName().split("\\$");
+                        String nestedClassNameAsString = lookupClassNameSplit[lookupClassNameSplit.length - 1];
+                        Method getterMethod = mainStepClass.getDeclaredMethod(GETTER_METHOD_PREFIX + nestedClassNameAsString.substring(0, 1).toUpperCase()
+                                + nestedClassNameAsString.substring(1));
+                        Object nestedClassObject = getterMethod.invoke(mainStepClassObject);
+
+                        getterMethod = lookupStepClass.getDeclaredMethod(GETTER_METHOD_PREFIX + getLookupField(lookupStepClass, freshLookup).substring(0, 1).toUpperCase()
+                                + getLookupField(lookupStepClass, freshLookup).substring(1));
+
+                        fieldValue = getterMethod.invoke(nestedClassObject);
+                        redis.put(mainStepPathAsString + "_" + fieldValue,mainStepObjectAsString);
+                    }
+                    else{
+                        Method getterMethod = lookupStepClass.getDeclaredMethod(GETTER_METHOD_PREFIX + getLookupField(lookupStepClass, freshLookup).substring(0, 1).toUpperCase()
+                                + getLookupField(lookupStepClass, freshLookup).substring(1));
+                        fieldValue = getterMethod.invoke(mainStepClassObject);
+                        redis.put(mainStepPathAsString + "_" + fieldValue,mainStepObjectAsString);
+                    }
 
 //                  Now check if it exists in
                     Boolean found = false;
@@ -104,9 +125,9 @@ public class Processor {
     }
 
 
-    public String getLookupField(Class<?> masterClass, FreshLookup freshLookup){
+    public String getLookupField(Class<?> lookupClass, FreshLookup freshLookup){
 
-        String className = masterClass.getName();
+        String className = lookupClass.getName();
         if ( freshLookup.leftClass().getName().equals(className)){
             return freshLookup.leftClassField();
         }
@@ -123,10 +144,10 @@ public class Processor {
         // Here lookup class name could be same as that of master class name.
         // Here lookup class name could be different masterclass but lookup class would be the nested class of the master class
 
-        if ( freshLookup.leftClass().getName().split(".")[0].equals(masterClass.getName())){
+        if ( freshLookup.leftClass().getName().startsWith(masterClass.getName())){
             return freshLookup.leftClass().getName();
         }
-        else if(freshLookup.rightClass().getName().split(".")[0].equals(masterClass.getName())){
+        else if(freshLookup.rightClass().getName().startsWith(masterClass.getName())){
             return freshLookup.rightClass().getName();
         }
         else {

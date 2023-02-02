@@ -23,6 +23,7 @@ public class Usage extends BaseBean {
 
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Source {
 
         String type;
@@ -67,6 +68,7 @@ public class Usage extends BaseBean {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Created_by {
 
         String type;
@@ -138,7 +140,7 @@ public class Usage extends BaseBean {
 
     @Override
     public Boolean filter() {
-        if(new Usage.Source().getName() == null){
+        if(this.getSource().getName() == null){
             return false;
         }
         else{
