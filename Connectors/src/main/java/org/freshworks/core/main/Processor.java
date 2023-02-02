@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Multimap;
 import org.freshworks.core.constants.Constants;
+import org.freshworks.core.env.Environment;
 import org.freshworks.core.infra.Infra;
 import org.freshworks.core.Annotations.FreshLookup;
 import org.freshworks.core.utils.Utility;
@@ -24,102 +25,114 @@ public class Processor {
     public Processor(Multimap<String, String> serviceAssetTable){
         this.serviceAssetTable = serviceAssetTable;
     }
-    public void process() throws IOException, InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException, ClassNotFoundException, NoSuchFieldException, InterruptedException {
+    public void process() {
 
-
-        ObjectMapper objectMapper = new ObjectMapper();
-
-        while(true){
-            String s = Infra.kafka.take();
-            JsonNode jNode = objectMapper.readTree(s);
-            String mainStepPathAsString = jNode.get(Constants.BASE_BEAN).get(JsonTypeInfo_As_PROPERTY).asText();
-            String mainStepObjectAsString = jNode.get(Constants.BASE_BEAN).toString();
-            ArrayList<String> unwrappedStepsOfMainStep =  unwrapMainStep(mainStepObjectAsString);
-            for(String  asset: serviceAssetTable.keys()) {
-
-                List<String> assetStepDependencyList = getAssetStepDependencyList(asset);
-
-                if (isAssetDependOnSingleStep(assetStepDependencyList) && isAssetDependOnThisStep(assetStepDependencyList, mainStepPathAsString)){
-                    Class<?> assetClass =  Class.forName(asset);
-                    List<Method> setterMethods = Utility.getAllSetters(assetClass);
-                    Object assetClassObject = assetClass.newInstance();
-                    HashMap<String, Object> unwrappedStepClassMap = unwrappedMainStepToClassMap(unwrappedStepsOfMainStep);
-                    for (Method method: setterMethods) {
-                        Class<?> [] assetMethodParameterList = method.getParameterTypes();
-                        method.invoke(assetClassObject,unwrappedStepClassMap.get(assetMethodParameterList[0].getName()));
+        try{
+            ObjectMapper objectMapper = new ObjectMapper();
+            while(true){
+                if(Environment.getValueByKey(Constants.SYNC_STATUS_KEY).equals(Constants.SYNC_STATUS.TRAVERSE_SUCCESS)){
+                    if ( Infra.kafka.isEmpty()){
+                        break;
                     }
-                    System.out.println(objectMapper.writeValueAsString(assetClassObject));
                 }
-                else if (!isAssetDependOnSingleStep(assetStepDependencyList) && isAssetDependOnThisStep(assetStepDependencyList,mainStepPathAsString)){
-//                  Check if dependency List objects are present in the redis or not
-                    Class<?> assetClass =  Class.forName(asset);
-                    FreshLookup freshLookup = assetClass.getAnnotation(FreshLookup.class);
-                    Object mainStepClassObject = objectMapper.readValue(mainStepObjectAsString, Class.forName(mainStepPathAsString));
-                    Class<?> mainStepClass = Class.forName(mainStepPathAsString);
-                    Class<?> lookupStepClass = Class.forName(getLookupClassName(mainStepClass, freshLookup));
-                    Class<?>[] nestedClassList = mainStepClass.getDeclaredClasses();
+                String s = Infra.kafka.take();
+                JsonNode jNode = objectMapper.readTree(s);
+                String mainStepPathAsString = jNode.get(Constants.BASE_BEAN).get(JsonTypeInfo_As_PROPERTY).asText();
+                String mainStepObjectAsString = jNode.get(Constants.BASE_BEAN).toString();
+                ArrayList<String> unwrappedStepsOfMainStep =  unwrapMainStep(mainStepObjectAsString);
+                for(String  asset: serviceAssetTable.keys()) {
 
-                    Object fieldValue = null;
-                    if(nestedClassList.length > 0 && !lookupStepClass.getName().equals(mainStepClass.getName())){
+                    List<String> assetStepDependencyList = getAssetStepDependencyList(asset);
 
-                        // It means that lookup step class is nested class of the main step class
-                        // Here extract the object of lookupStepClass from mainStepClassObject
-                        String[] lookupClassNameSplit = lookupStepClass.getName().split("\\$");
-                        String nestedClassNameAsString = lookupClassNameSplit[lookupClassNameSplit.length - 1];
-                        Method getterMethod = mainStepClass.getDeclaredMethod(GETTER_METHOD_PREFIX + nestedClassNameAsString.substring(0, 1).toUpperCase()
-                                + nestedClassNameAsString.substring(1));
-                        Object nestedClassObject = getterMethod.invoke(mainStepClassObject);
-
-                        getterMethod = lookupStepClass.getDeclaredMethod(GETTER_METHOD_PREFIX + getLookupField(lookupStepClass, freshLookup).substring(0, 1).toUpperCase()
-                                + getLookupField(lookupStepClass, freshLookup).substring(1));
-
-                        fieldValue = getterMethod.invoke(nestedClassObject);
-                        redis.put(mainStepPathAsString + "_" + fieldValue,mainStepObjectAsString);
-                    }
-                    else{
-                        Method getterMethod = lookupStepClass.getDeclaredMethod(GETTER_METHOD_PREFIX + getLookupField(lookupStepClass, freshLookup).substring(0, 1).toUpperCase()
-                                + getLookupField(lookupStepClass, freshLookup).substring(1));
-                        fieldValue = getterMethod.invoke(mainStepClassObject);
-                        redis.put(mainStepPathAsString + "_" + fieldValue,mainStepObjectAsString);
-                    }
-
-//                  Now check if it exists in
-                    Boolean found = false;
-                    ArrayList<String> assetStepDependencyObjectListAsString = new ArrayList<>();
-                    for(String f : assetStepDependencyList){
-                        if(redis.get(f + "_" + fieldValue) == null){
-                            found = false;
-                            break;
-                        }
-                        else{
-                            found = true;
-                            assetStepDependencyObjectListAsString.add(redis.get(f + "_" + fieldValue));
-                        }
-                    }
-
-                    if(Boolean.TRUE.equals(found)){
+                    if (isAssetDependOnSingleStep(assetStepDependencyList) && isAssetDependOnThisStep(assetStepDependencyList, mainStepPathAsString)){
+                        Class<?> assetClass =  Class.forName(asset);
                         List<Method> setterMethods = Utility.getAllSetters(assetClass);
                         Object assetClassObject = assetClass.newInstance();
-                        unwrappedStepsOfMainStep = new ArrayList<>();
-                        for( int i=0; i< assetStepDependencyObjectListAsString.size(); i++){
-                            unwrappedStepsOfMainStep.addAll(unwrapMainStep(assetStepDependencyObjectListAsString.get(i)));
-                        }
-
                         HashMap<String, Object> unwrappedStepClassMap = unwrappedMainStepToClassMap(unwrappedStepsOfMainStep);
                         for (Method method: setterMethods) {
                             Class<?> [] assetMethodParameterList = method.getParameterTypes();
-                            Object[] object = new Object[assetMethodParameterList.length];
-                            for(int i =0; i< assetMethodParameterList.length; i++){
-                                object[i] = unwrappedStepClassMap.get(assetMethodParameterList[i].getName());
-                            }
-                            method.invoke(assetClassObject,object);
+                            method.invoke(assetClassObject,unwrappedStepClassMap.get(assetMethodParameterList[0].getName()));
+                        }
+                        System.out.println(objectMapper.writeValueAsString(assetClassObject));
+                    }
+                    else if (!isAssetDependOnSingleStep(assetStepDependencyList) && isAssetDependOnThisStep(assetStepDependencyList,mainStepPathAsString)){
+//                  Check if dependency List objects are present in the redis or not
+                        Class<?> assetClass =  Class.forName(asset);
+                        FreshLookup freshLookup = assetClass.getAnnotation(FreshLookup.class);
+                        Object mainStepClassObject = objectMapper.readValue(mainStepObjectAsString, Class.forName(mainStepPathAsString));
+                        Class<?> mainStepClass = Class.forName(mainStepPathAsString);
+                        Class<?> lookupStepClass = Class.forName(getLookupClassName(mainStepClass, freshLookup));
+                        Class<?>[] nestedClassList = mainStepClass.getDeclaredClasses();
+
+                        Object fieldValue = null;
+                        if(nestedClassList.length > 0 && !lookupStepClass.getName().equals(mainStepClass.getName())){
+
+                            // It means that lookup step class is nested class of the main step class
+                            // Here extract the object of lookupStepClass from mainStepClassObject
+                            String[] lookupClassNameSplit = lookupStepClass.getName().split("\\$");
+                            String nestedClassNameAsString = lookupClassNameSplit[lookupClassNameSplit.length - 1];
+                            Method getterMethod = mainStepClass.getDeclaredMethod(GETTER_METHOD_PREFIX + nestedClassNameAsString.substring(0, 1).toUpperCase()
+                                    + nestedClassNameAsString.substring(1));
+                            Object nestedClassObject = getterMethod.invoke(mainStepClassObject);
+
+                            getterMethod = lookupStepClass.getDeclaredMethod(GETTER_METHOD_PREFIX + getLookupField(lookupStepClass, freshLookup).substring(0, 1).toUpperCase()
+                                    + getLookupField(lookupStepClass, freshLookup).substring(1));
+
+                            fieldValue = getterMethod.invoke(nestedClassObject);
+                            redis.put(mainStepPathAsString + "_" + fieldValue,mainStepObjectAsString);
+                        }
+                        else{
+                            Method getterMethod = lookupStepClass.getDeclaredMethod(GETTER_METHOD_PREFIX + getLookupField(lookupStepClass, freshLookup).substring(0, 1).toUpperCase()
+                                    + getLookupField(lookupStepClass, freshLookup).substring(1));
+                            fieldValue = getterMethod.invoke(mainStepClassObject);
+                            redis.put(mainStepPathAsString + "_" + fieldValue,mainStepObjectAsString);
                         }
 
-                        System.out.println(objectMapper.writeValueAsString(assetClassObject));
+//                  Now check if it exists in
+                        Boolean found = false;
+                        ArrayList<String> assetStepDependencyObjectListAsString = new ArrayList<>();
+                        for(String f : assetStepDependencyList){
+                            if(redis.get(f + "_" + fieldValue) == null){
+                                found = false;
+                                break;
+                            }
+                            else{
+                                found = true;
+                                assetStepDependencyObjectListAsString.add(redis.get(f + "_" + fieldValue));
+                            }
+                        }
+
+                        if(Boolean.TRUE.equals(found)){
+                            List<Method> setterMethods = Utility.getAllSetters(assetClass);
+                            Object assetClassObject = assetClass.newInstance();
+                            unwrappedStepsOfMainStep = new ArrayList<>();
+                            for( int i=0; i< assetStepDependencyObjectListAsString.size(); i++){
+                                unwrappedStepsOfMainStep.addAll(unwrapMainStep(assetStepDependencyObjectListAsString.get(i)));
+                            }
+
+                            HashMap<String, Object> unwrappedStepClassMap = unwrappedMainStepToClassMap(unwrappedStepsOfMainStep);
+                            for (Method method: setterMethods) {
+                                Class<?> [] assetMethodParameterList = method.getParameterTypes();
+                                Object[] object = new Object[assetMethodParameterList.length];
+                                for(int i =0; i< assetMethodParameterList.length; i++){
+                                    object[i] = unwrappedStepClassMap.get(assetMethodParameterList[i].getName());
+                                }
+                                method.invoke(assetClassObject,object);
+                            }
+
+                            System.out.println(objectMapper.writeValueAsString(assetClassObject));
+                        }
                     }
                 }
             }
+
+            Environment.setKeyValue(Constants.SYNC_STATUS_KEY, Constants.SYNC_STATUS.PROCESS_SUCCESS);
         }
+        catch(Exception e){
+            Environment.setKeyValue(Constants.SYNC_STATUS_KEY, Constants.SYNC_STATUS.PROCESS_FAILED);
+        }
+
+        Environment.setKeyValue(Constants.SYNC_STATUS_KEY, Constants.SYNC_STATUS.TOTAL_SUCCESS);
     }
 
 

@@ -2,6 +2,7 @@ package org.freshworks.core.main;
 
 import com.google.common.collect.Multimap;
 import com.scalified.tree.TreeNode;
+import org.freshworks.core.constants.Constants;
 import org.freshworks.core.env.Environment;
 import org.freshworks.core.scanners.ScanAssets;
 import org.freshworks.core.scanners.ScanBeans;
@@ -23,6 +24,8 @@ public class Main
 
     public static void main( String[] args ) {
 
+        Environment.setKeyValue(Constants.SYNC_STATUS_KEY, Constants.SYNC_STATUS.START);
+
         Environment.setKeyValue("transaction_id", "11223");
         Environment.setKeyValue("service", "box");
         Environment.setKeyValue("params", "123");
@@ -43,13 +46,16 @@ public class Main
                 Iterator<TreeNode<String>> it = main.dagMap.get((String)Environment.getValueByKey("service")).iterator();
                 while(it.hasNext()){
                     try{
+                        Environment.setKeyValue(Constants.SYNC_STATUS_KEY, Constants.SYNC_STATUS.IN_PROGRESS);
                         Traverser.traverse(it.next());
                     }
                     catch(Exception e){
+                        Environment.setKeyValue(Constants.SYNC_STATUS_KEY, Constants.SYNC_STATUS.TRAVERSE_FAILED);
                         e.printStackTrace();
                     }
 
                 }
+                Environment.setKeyValue(Constants.SYNC_STATUS_KEY, Constants.SYNC_STATUS.TRAVERSE_SUCCESS);
                 return null;
             }
         });
