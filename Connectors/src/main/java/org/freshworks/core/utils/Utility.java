@@ -10,9 +10,12 @@ import java.util.List;
 
 public class Utility {
 
+    private Utility(){
+
+    }
     public static List<Method> getAllSetters(Class<?> c){
         Method[] allMethods = c.getDeclaredMethods();
-        List<Method> setters = new ArrayList<Method>();
+        List<Method> setters = new ArrayList<>();
         for(Method method : allMethods) {
             if(method.getName().startsWith("set")) {
                 setters.add(method);

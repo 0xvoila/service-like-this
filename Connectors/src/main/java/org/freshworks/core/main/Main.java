@@ -6,9 +6,6 @@ import org.freshworks.core.env.Environment;
 import org.freshworks.core.scanners.ScanAssets;
 import org.freshworks.core.scanners.ScanBeans;
 
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.net.URISyntaxException;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -20,7 +17,7 @@ import java.util.concurrent.Executors;
  */
 public class Main
 {
-    Multimap<String, String> connectorConfigItemTable;
+    Multimap<String, String> serviceAssetTable;
     HashMap<String, TreeNode<String>> dagMap ;
 
 
@@ -36,7 +33,7 @@ public class Main
         main.dagMap = scanBeans.scanner();
 
         ScanAssets scanAssets = new ScanAssets();
-        main.connectorConfigItemTable = scanAssets.scanner(main.dagMap);
+        main.serviceAssetTable = scanAssets.scanner(main.dagMap);
 
         ExecutorService threadService = Executors.newFixedThreadPool(2);
 
@@ -61,7 +58,7 @@ public class Main
             @Override
             public Void call() {
                 try{
-                    Processor processor = new Processor(main.connectorConfigItemTable);
+                    Processor processor = new Processor(main.serviceAssetTable);
                     processor.process();
                     return null;
                 }

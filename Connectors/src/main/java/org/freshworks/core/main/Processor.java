@@ -19,10 +19,10 @@ import static org.freshworks.core.constants.Constants.JsonTypeInfo_As_PROPERTY;
 public class Processor {
 
     HashMap<String, String> redis = new HashMap<>();
-    Multimap<String, String> connectorConfigItemTable;
+    Multimap<String, String> serviceAssetTable;
 
-    public Processor(Multimap<String, String> connectorConfigItemTable){
-        this.connectorConfigItemTable = connectorConfigItemTable;
+    public Processor(Multimap<String, String> serviceAssetTable){
+        this.serviceAssetTable = serviceAssetTable;
     }
     public void process() throws IOException, InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException, ClassNotFoundException, NoSuchFieldException, InterruptedException {
 
@@ -35,25 +35,25 @@ public class Processor {
             String mainStepPathAsString = jNode.get(Constants.BASE_BEAN).get(JsonTypeInfo_As_PROPERTY).asText();
             String mainStepObjectAsString = jNode.get(Constants.BASE_BEAN).toString();
             ArrayList<String> unwrappedStepsOfMainStep =  unwrapMainStep(mainStepObjectAsString);
-            for(String  configItem: connectorConfigItemTable.keys()) {
+            for(String  asset: serviceAssetTable.keys()) {
 
-                List<String> configItemStepDependencyList = getConfigItemStepDependencyList(configItem);
+                List<String> assetStepDependencyList = getAssetStepDependencyList(asset);
 
-                if (isConfigItemDependOnSingleStep(configItemStepDependencyList) && isConfigItemDependOnThisStep(configItemStepDependencyList, mainStepPathAsString)){
-                    Class<?> configItemClass =  Class.forName(configItem);
-                    List<Method> setterMethods = Utility.getAllSetters(configItemClass);
-                    Object configItemClassObject = configItemClass.newInstance();
+                if (isAssetDependOnSingleStep(assetStepDependencyList) && isAssetDependOnThisStep(assetStepDependencyList, mainStepPathAsString)){
+                    Class<?> assetClass =  Class.forName(asset);
+                    List<Method> setterMethods = Utility.getAllSetters(assetClass);
+                    Object assetClassObject = assetClass.newInstance();
                     HashMap<String, Object> unwrappedStepClassMap = unwrappedMainStepToClassMap(unwrappedStepsOfMainStep);
                     for (Method method: setterMethods) {
-                        Class<?> [] configItemMethodParameterList = method.getParameterTypes();
-                        method.invoke(configItemClassObject,unwrappedStepClassMap.get(configItemMethodParameterList[0].getName()));
+                        Class<?> [] assetMethodParameterList = method.getParameterTypes();
+                        method.invoke(assetClassObject,unwrappedStepClassMap.get(assetMethodParameterList[0].getName()));
                     }
-                    System.out.println(objectMapper.writeValueAsString(configItemClassObject));
+                    System.out.println(objectMapper.writeValueAsString(assetClassObject));
                 }
-                else if (!isConfigItemDependOnSingleStep(configItemStepDependencyList) && isConfigItemDependOnThisStep(configItemStepDependencyList,mainStepPathAsString)){
+                else if (!isAssetDependOnSingleStep(assetStepDependencyList) && isAssetDependOnThisStep(assetStepDependencyList,mainStepPathAsString)){
 //                  Check if dependency List objects are present in the redis or not
-                    Class<?> configItemClass =  Class.forName(configItem);
-                    FreshLookup freshLookup = configItemClass.getAnnotation(FreshLookup.class);
+                    Class<?> assetClass =  Class.forName(asset);
+                    FreshLookup freshLookup = assetClass.getAnnotation(FreshLookup.class);
                     Object mainStepClassObject = objectMapper.readValue(mainStepObjectAsString, Class.forName(mainStepPathAsString));
                     Class<?> mainStepClass = Class.forName(mainStepPathAsString);
                     Class<?> lookupStepClass = Class.forName(getLookupClassName(mainStepClass, freshLookup));
@@ -85,37 +85,37 @@ public class Processor {
 
 //                  Now check if it exists in
                     Boolean found = false;
-                    ArrayList<String> configItemStepDependencyObjectListAsString = new ArrayList<>();
-                    for(String f : configItemStepDependencyList){
+                    ArrayList<String> assetStepDependencyObjectListAsString = new ArrayList<>();
+                    for(String f : assetStepDependencyList){
                         if(redis.get(f + "_" + fieldValue) == null){
                             found = false;
                             break;
                         }
                         else{
                             found = true;
-                            configItemStepDependencyObjectListAsString.add(redis.get(f + "_" + fieldValue));
+                            assetStepDependencyObjectListAsString.add(redis.get(f + "_" + fieldValue));
                         }
                     }
 
                     if(Boolean.TRUE.equals(found)){
-                        List<Method> setterMethods = Utility.getAllSetters(configItemClass);
-                        Object configItemClassObject = configItemClass.newInstance();
+                        List<Method> setterMethods = Utility.getAllSetters(assetClass);
+                        Object assetClassObject = assetClass.newInstance();
                         unwrappedStepsOfMainStep = new ArrayList<>();
-                        for( int i=0; i< configItemStepDependencyObjectListAsString.size(); i++){
-                            unwrappedStepsOfMainStep.addAll(unwrapMainStep(configItemStepDependencyObjectListAsString.get(i)));
+                        for( int i=0; i< assetStepDependencyObjectListAsString.size(); i++){
+                            unwrappedStepsOfMainStep.addAll(unwrapMainStep(assetStepDependencyObjectListAsString.get(i)));
                         }
 
                         HashMap<String, Object> unwrappedStepClassMap = unwrappedMainStepToClassMap(unwrappedStepsOfMainStep);
                         for (Method method: setterMethods) {
-                            Class<?> [] configItemMethodParameterList = method.getParameterTypes();
-                            Object[] object = new Object[configItemMethodParameterList.length];
-                            for(int i =0; i< configItemMethodParameterList.length; i++){
-                                object[i] = unwrappedStepClassMap.get(configItemMethodParameterList[i].getName());
+                            Class<?> [] assetMethodParameterList = method.getParameterTypes();
+                            Object[] object = new Object[assetMethodParameterList.length];
+                            for(int i =0; i< assetMethodParameterList.length; i++){
+                                object[i] = unwrappedStepClassMap.get(assetMethodParameterList[i].getName());
                             }
-                            method.invoke(configItemClassObject,object);
+                            method.invoke(assetClassObject,object);
                         }
 
-                        System.out.println(objectMapper.writeValueAsString(configItemClassObject));
+                        System.out.println(objectMapper.writeValueAsString(assetClassObject));
                     }
                 }
             }
@@ -182,8 +182,8 @@ public class Processor {
         return x;
     }
 
-    public Boolean isConfigItemDependOnSingleStep(List<String> configItemStepDependencyList){
-        if (configItemStepDependencyList.size() == 1){
+    public Boolean isAssetDependOnSingleStep(List<String> assetStepDependencyList){
+        if (assetStepDependencyList.size() == 1){
             return true;
         }
         else{
@@ -191,12 +191,13 @@ public class Processor {
         }
     }
 
-    public Boolean isConfigItemDependOnThisStep(List<String> configItemStepDependencyList, String mainStepPathAsString){
-        return configItemStepDependencyList.contains(mainStepPathAsString);
+    public Boolean isAssetDependOnThisStep(List<String> assetStepDependencyList, String mainStepPathAsString){
+        return assetStepDependencyList.contains(mainStepPathAsString);
     }
 
-    public List<String> getConfigItemStepDependencyList(String configItem){
-        return (List<String>) connectorConfigItemTable.get(configItem);
+    public List<String> getAssetStepDependencyList(String asset){
+        return (List<String>) serviceAssetTable.get(asset);
+
     }
 
     public HashMap<String, Object> unwrappedMainStepToClassMap(ArrayList<String> unwrappedStepsOfMainStep) throws ClassNotFoundException, IOException {
