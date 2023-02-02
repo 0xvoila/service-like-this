@@ -5,8 +5,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.scalified.tree.TreeNode;
-import org.freshworks.Constants;
-import org.freshworks.Infra;
+import org.freshworks.core.constants.Constants;
+import org.freshworks.core.infra.Infra;
 import org.freshworks.beans.BaseBean;
 import org.freshworks.core.model.DiscoveryObject;
 import org.freshworks.core.model.RequestResponse;
@@ -26,13 +26,11 @@ public class Traverser {
 
     static HashMap<String, StepInterface> singletonObjects = new HashMap<>();
 
-    public static void traverse(TreeNode<String> node, HashMap<String, String> syncConfig) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException, URISyntaxException, IOException, InstantiationException {
+    public static void traverse(TreeNode<String> node) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException, URISyntaxException, IOException, InstantiationException {
 
         ObjectMapper objectMapper = new ObjectMapper();
 
         if(node.parent() == null && node.data().equals(BaseStep.class.getName())) {
-            return;
-//            process(node, null, syncConfig);
         }
         else{
             StepInterface parentTraverseObject = null;
@@ -48,7 +46,7 @@ public class Traverser {
 
             Iterator<String> it = parentTraverseObject.getResult().iterator();
             while (it.hasNext()){
-                process(node, objectMapper.readTree(it.next()), syncConfig);
+                process(node, objectMapper.readTree(it.next()));
             }
 
         }
@@ -69,7 +67,7 @@ public class Traverser {
     }
 
 
-    private static void process(TreeNode<String> node, JsonNode parentNodeData, HashMap<String, String> syncConfig){
+    private static void process(TreeNode<String> node, JsonNode parentNodeData){
 
         try{
             Class<?> cl = Class.forName(node.data());
@@ -94,7 +92,7 @@ public class Traverser {
 
                     JsonNode jNode = iterator.next();
                     ObjectNode o = (ObjectNode) jNode;
-                    HashMap<String, String> nodeMetaData = Utility.getMetaDataByClass(cl, syncConfig);
+                    HashMap<String, String> nodeMetaData = Utility.getMetaDataByClass(cl);
                     o.put(Constants.JsonTypeInfo_As_PROPERTY, nodeMetaData.get("bean"));
                     BaseBean baseBean = objectMapper.readValue(o.toString(), BaseBean.class);
 

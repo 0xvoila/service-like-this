@@ -1,22 +1,20 @@
 package org.freshworks.core.main;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Multimap;
-import org.freshworks.Constants;
-import org.freshworks.Infra;
+import org.freshworks.core.constants.Constants;
+import org.freshworks.core.infra.Infra;
 import org.freshworks.core.Annotations.FreshLookup;
 import org.freshworks.core.utils.Utility;
-import org.freshworks.faker.BoxFaker;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 
-import static org.freshworks.Constants.GETTER_METHOD_PREFIX;
-import static org.freshworks.Constants.JsonTypeInfo_As_PROPERTY;
+import static org.freshworks.core.constants.Constants.GETTER_METHOD_PREFIX;
+import static org.freshworks.core.constants.Constants.JsonTypeInfo_As_PROPERTY;
 
 public class Processor {
 

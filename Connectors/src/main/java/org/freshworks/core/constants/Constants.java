@@ -1,6 +1,4 @@
-package org.freshworks;
-
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+package org.freshworks.core.constants;
 
 public class Constants {
 

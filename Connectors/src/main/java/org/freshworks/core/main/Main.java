@@ -2,6 +2,7 @@ package org.freshworks.core.main;
 
 import com.google.common.collect.Multimap;
 import com.scalified.tree.TreeNode;
+import org.freshworks.core.env.Environment;
 import org.freshworks.core.scanners.ScanAssets;
 import org.freshworks.core.scanners.ScanBeans;
 
@@ -25,28 +26,27 @@ public class Main
 
     public static void main( String[] args ) {
 
-        HashMap<String, String> syncConfig = new HashMap<>();
-        syncConfig.put("transaction_id", "11223");
-        syncConfig.put("service", "box");
-        syncConfig.put("params", "123");
+        Environment.setKeyValue("transaction_id", "11223");
+        Environment.setKeyValue("service", "box");
+        Environment.setKeyValue("params", "123");
 
         Main main = new Main();
 
         ScanBeans scanBeans = new ScanBeans();
-        main.dagMap = scanBeans.scanner(syncConfig);
+        main.dagMap = scanBeans.scanner();
 
         ScanAssets scanAssets = new ScanAssets();
-        main.connectorConfigItemTable = scanAssets.scanner(syncConfig,main.dagMap);
+        main.connectorConfigItemTable = scanAssets.scanner(main.dagMap);
 
         ExecutorService threadService = Executors.newFixedThreadPool(2);
 
         threadService.submit(new Callable<Void>() {
             @Override
             public Void call() throws Exception {
-                Iterator<TreeNode<String>> it = main.dagMap.get(syncConfig.get("service")).iterator();
+                Iterator<TreeNode<String>> it = main.dagMap.get((String)Environment.getValueByKey("service")).iterator();
                 while(it.hasNext()){
                     try{
-                        Traverser.traverse(it.next(), syncConfig);
+                        Traverser.traverse(it.next());
                     }
                     catch(Exception e){
                         e.printStackTrace();

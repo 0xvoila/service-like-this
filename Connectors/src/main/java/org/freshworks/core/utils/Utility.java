@@ -1,6 +1,7 @@
 package org.freshworks.core.utils;
 
-import org.freshworks.Constants;
+import org.freshworks.core.constants.Constants;
+import org.freshworks.core.env.Environment;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -21,13 +22,13 @@ public class Utility {
         return setters;
     }
 
-    public static HashMap<String, String> getMetaDataByClass(Class<?> clazz, HashMap<String, String> syncConfig){
+    public static HashMap<String, String> getMetaDataByClass(Class<?> clazz){
 
         String postmanClassName = clazz.getName().substring(clazz.getName().lastIndexOf('.') + 1);
 
         HashMap<String, String> data = new HashMap<>();
-        data.put("postman", Constants.STEP_PATH + syncConfig.get("service") + "." + postmanClassName);
-        data.put("bean", Constants.BEAN_PATH + syncConfig.get("service") + "." + postmanClassName);
+        data.put("postman", Constants.STEP_PATH + Environment.getValueByKey("service") + "." + postmanClassName);
+        data.put("bean", Constants.BEAN_PATH + Environment.getValueByKey("service") + "." + postmanClassName);
 
         return data;
     }

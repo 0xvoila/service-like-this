@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.JsonNode;
 
 
-import static org.freshworks.Constants.JsonTypeInfo_As_PROPERTY;
+import static org.freshworks.core.constants.Constants.JsonTypeInfo_As_PROPERTY;
 
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME,

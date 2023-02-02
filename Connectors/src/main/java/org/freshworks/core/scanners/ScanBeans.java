@@ -2,29 +2,29 @@ package org.freshworks.core.scanners;
 
 import com.scalified.tree.TreeNode;
 import com.scalified.tree.multinode.ArrayMultiTreeNode;
-import org.freshworks.Constants;
+import org.freshworks.core.constants.Constants;
 import org.freshworks.core.Annotations.FreshHierarchy;
+import org.freshworks.core.env.Environment;
 import org.freshworks.steps.BaseStep;
 import org.freshworks.steps.StepInterface;
 import org.reflections.Reflections;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
-import org.reflections.util.FilterBuilder;
 
 import java.util.*;
 import static org.reflections.scanners.Scanners.SubTypes;
 
 public class ScanBeans {
 
-    public HashMap<String, TreeNode<String>> scanner(HashMap<String, String> syncConfig){
+    public HashMap<String, TreeNode<String>> scanner(){
 
         HashMap<String, TreeNode<String>> dagMap = new HashMap<>();
 
 //      Creation of the DAG for the given connector
         Reflections reflections = new Reflections(new ConfigurationBuilder().
-                setUrls(ClasspathHelper.forPackage(Constants.STEP_PATH + syncConfig.get("service")))
+                setUrls(ClasspathHelper.forPackage(Constants.STEP_PATH + Environment.getValueByKey("service")))
         );
-        dagMap.put(syncConfig.get("service"), createDAG(reflections));
+        dagMap.put((String)Environment.getValueByKey("service"), createDAG(reflections));
 
         return dagMap;
     }
