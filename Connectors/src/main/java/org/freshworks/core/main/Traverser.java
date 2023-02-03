@@ -120,11 +120,18 @@ public class Traverser {
                 singletonObjects.put(node.data(), abstractStep);
             }
 
+            int i = 0;
+            RequestResponse requestResponse = null;
+            Optional<RequestResponse> requestResponseOptional;
             while (true) {
-                Optional<RequestResponse> requestResponseOptional = abstractStep.startSync();
-                checkArgument(requestResponseOptional.isPresent(), "start sync request can not be null");
+                if (i == 0){
+                    requestResponseOptional = abstractStep.startSync();
+                    checkArgument(requestResponseOptional.isPresent(), "start sync request can not be null");
+                    requestResponse = requestResponseOptional.get();
+                }
 
-                RequestResponse requestResponse = requestResponseOptional.get();
+                i = i + 1;
+
                 getObject(requestResponse);
                 checkArgument(!requestResponse.getResponse().body().equals(""), "Requested response is empty from third party");
 
