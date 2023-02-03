@@ -14,6 +14,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.freshworks.core.constants.Constants.GETTER_METHOD_PREFIX;
 import static org.freshworks.core.constants.Constants.JsonTypeInfo_As_PROPERTY;
 
@@ -36,6 +38,8 @@ public class Processor {
                     }
                 }
                 String s = Infra.kafka.take();
+                checkNotNull(s, "Input object can not be null. It must be not null");
+
                 JsonNode jNode = objectMapper.readTree(s);
                 String mainStepPathAsString = jNode.get(Constants.BASE_BEAN).get(JsonTypeInfo_As_PROPERTY).asText();
                 String mainStepObjectAsString = jNode.get(Constants.BASE_BEAN).toString();
@@ -43,6 +47,7 @@ public class Processor {
                 for(String  asset: serviceAssetTable.keys()) {
 
                     List<String> assetStepDependencyList = getAssetStepDependencyList(asset);
+                    checkArgument(assetStepDependencyList.size() > 0, "A asset must be dependent on atleast one bean");
 
                     if (isAssetDependOnSingleStep(assetStepDependencyList) && isAssetDependOnThisStep(assetStepDependencyList, mainStepPathAsString)){
                         Class<?> assetClass =  Class.forName(asset);
@@ -59,6 +64,8 @@ public class Processor {
 //                  Check if dependency List objects are present in the redis or not
                         Class<?> assetClass =  Class.forName(asset);
                         FreshLookup freshLookup = assetClass.getAnnotation(FreshLookup.class);
+                        checkNotNull(freshLookup, "When a asset depends on multiple items at child node then join condition must be provided with Freshlookup annotation");
+
                         Object mainStepClassObject = objectMapper.readValue(mainStepObjectAsString, Class.forName(mainStepPathAsString));
                         Class<?> mainStepClass = Class.forName(mainStepPathAsString);
                         Class<?> lookupStepClass = Class.forName(getLookupClassName(mainStepClass, freshLookup));
@@ -79,12 +86,16 @@ public class Processor {
                                     + getLookupField(lookupStepClass, freshLookup).substring(1));
 
                             fieldValue = getterMethod.invoke(nestedClassObject);
+                            checkNotNull(fieldValue, "lookup field value can not be null");
+
                             redis.put(mainStepPathAsString + "_" + fieldValue,mainStepObjectAsString);
                         }
                         else{
                             Method getterMethod = lookupStepClass.getDeclaredMethod(GETTER_METHOD_PREFIX + getLookupField(lookupStepClass, freshLookup).substring(0, 1).toUpperCase()
                                     + getLookupField(lookupStepClass, freshLookup).substring(1));
                             fieldValue = getterMethod.invoke(mainStepClassObject);
+                            checkNotNull(fieldValue, "lookup field value can not be null");
+
                             redis.put(mainStepPathAsString + "_" + fieldValue,mainStepObjectAsString);
                         }
 
@@ -138,32 +149,39 @@ public class Processor {
 
     public String getLookupField(Class<?> lookupClass, FreshLookup freshLookup){
 
+        String fieldName;
         String className = lookupClass.getName();
         if ( freshLookup.leftClass().getName().equals(className)){
-            return freshLookup.leftClassField();
+            fieldName = freshLookup.leftClassField();
         }
         else if(freshLookup.rightClass().getName().equals(className)){
-            return freshLookup.rightClassField();
+            fieldName = freshLookup.rightClassField();
         }
         else{
-            return null;
+            fieldName =  null;
         }
+
+        checkNotNull(fieldName, "lookup field name can not be determined");
+        return fieldName;
     }
 
     public String getLookupClassName(Class<?> masterClass, FreshLookup freshLookup){
 
         // Here lookup class name could be same as that of master class name.
         // Here lookup class name could be different masterclass but lookup class would be the nested class of the master class
-
+        String className;
         if ( freshLookup.leftClass().getName().startsWith(masterClass.getName())){
-            return freshLookup.leftClass().getName();
+            className = freshLookup.leftClass().getName();
         }
         else if(freshLookup.rightClass().getName().startsWith(masterClass.getName())){
-            return freshLookup.rightClass().getName();
+            className = freshLookup.rightClass().getName();
         }
         else {
-            return null;
+            className = null;
         }
+
+        checkNotNull(className, "lookup class name can not be null");
+        return className;
     }
 
     public ArrayList<String> unwrapMainStep(String mainStepObjectAsString) throws IOException {

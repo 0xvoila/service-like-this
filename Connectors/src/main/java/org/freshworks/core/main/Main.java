@@ -12,6 +12,9 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Hello world!
  *
@@ -34,9 +37,11 @@ public class Main
 
         ScanBeans scanBeans = new ScanBeans();
         main.dagMap = scanBeans.scanner();
+        checkArgument(main.dagMap.size() > 0 , "Directed Acyclic Graph for the service can not be null");
 
         ScanAssets scanAssets = new ScanAssets();
         main.serviceAssetTable = scanAssets.scanner(main.dagMap);
+        checkArgument(main.serviceAssetTable.size() > 0, "Service asset table for the service can not be null");
 
         ExecutorService threadService = Executors.newFixedThreadPool(2);
 
