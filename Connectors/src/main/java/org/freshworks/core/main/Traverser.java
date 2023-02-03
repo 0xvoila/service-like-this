@@ -22,6 +22,9 @@ import java.net.http.HttpResponse;
 import java.util.HashMap;
 import java.util.Iterator;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 public class Traverser {
 
     static HashMap<String, StepInterface> singletonObjects = new HashMap<>();
@@ -85,6 +88,8 @@ public class Traverser {
             while (true) {
                 RequestResponse requestResponse = stepInterface.start();
                 getObject(requestResponse);
+                checkArgument(!requestResponse.getResponse().body().equals(""), "Requested response is empty from third party");
+
                 JsonNode jNodeList = objectMapper.readTree(requestResponse.getResponse().body());
                 jNodeList = stepInterface.parseResponse(jNodeList);
                 Iterator<JsonNode> iterator = jNodeList.iterator();
