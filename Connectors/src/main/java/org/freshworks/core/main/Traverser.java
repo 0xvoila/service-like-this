@@ -4,6 +4,7 @@ package org.freshworks.core.main;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.base.Optional;
 import com.scalified.tree.TreeNode;
 import org.freshworks.core.constants.Constants;
 import org.freshworks.core.infra.Infra;
@@ -23,7 +24,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
 
 public class Traverser {
 
@@ -47,6 +47,9 @@ public class Traverser {
                 singletonObjects.put(node.parent().data(), parentTraverseObject);
             }
 
+//          In this method, we process the first time methods of the traverse like sync set up
+            setupSync(node);
+
             Iterator<String> it = parentTraverseObject.getSyncResult().iterator();
             while (it.hasNext()){
                 process(node, objectMapper.readTree(it.next()));
@@ -67,6 +70,40 @@ public class Traverser {
         }
     }
 
+    private static void setupSync(TreeNode<String> node){
+
+        try{
+            Class<?> cl = Class.forName(node.data());
+            ObjectMapper objectMapper = new ObjectMapper();
+
+            AbstractStep abstractStep = null;
+            if(singletonObjects.get(node.data()) != null){
+                abstractStep = singletonObjects.get(node.data());
+            }
+            else{
+                abstractStep = (AbstractStep) cl.getConstructor().newInstance();
+                singletonObjects.put(node.data(), abstractStep);
+            }
+
+            while(true){
+                Optional<RequestResponse> requestResponseOptional =  abstractStep.setupSync();
+                if(requestResponseOptional.isPresent()){
+                    getObject(requestResponseOptional.get());
+                    Optional<Boolean> opt = abstractStep.isSetupSyncComplete(requestResponseOptional.get());
+                    checkArgument(opt.isPresent(), "isSetupSyncComplete should return boolean. It returns null");
+                    if(Boolean.TRUE.equals(opt.get())){
+                        break;
+                    }
+                }
+                else{
+                    break;
+                }
+            }
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
+    }
 
     private static void process(TreeNode<String> node, JsonNode parentNodeData){
 
@@ -84,12 +121,18 @@ public class Traverser {
             }
 
             while (true) {
-                RequestResponse requestResponse = abstractStep.startSync();
+                Optional<RequestResponse> requestResponseOptional = abstractStep.startSync();
+                checkArgument(requestResponseOptional.isPresent(), "start sync request can not be null");
+
+                RequestResponse requestResponse = requestResponseOptional.get();
                 getObject(requestResponse);
                 checkArgument(!requestResponse.getResponse().body().equals(""), "Requested response is empty from third party");
 
                 JsonNode jNodeList = objectMapper.readTree(requestResponse.getResponse().body());
-                jNodeList = abstractStep.parseSyncResponse(jNodeList);
+                Optional<JsonNode> jsonNodeOptional = abstractStep.parseSyncResponse(jNodeList);
+                checkArgument(jsonNodeOptional.isPresent(), "parse Sync response can not be null. It must be value JSON node");
+
+                jNodeList = jsonNodeOptional.get();
                 Iterator<JsonNode> iterator = jNodeList.iterator();
                 while (iterator.hasNext()) {
 
@@ -113,13 +156,19 @@ public class Traverser {
                     }
                 }
 
-                if(Boolean.FALSE.equals(abstractStep.isSyncComplete(requestResponse))){
-                    requestResponse = abstractStep.getNextSyncRequest(requestResponse, parentNodeData);
+                Optional<Boolean> opt = abstractStep.isSyncComplete(requestResponse);
+                checkArgument(opt.isPresent(), "isSyncComplete should return boolean value. It returns null");
+                if(Boolean.FALSE.equals(opt.get())){
+                    requestResponseOptional = abstractStep.getNextSyncRequest(requestResponse, parentNodeData);
+                    checkArgument(requestResponseOptional.isPresent(), "Get next sync request can not be null");
+                    requestResponse = requestResponseOptional.get();
                 }
                 else{
                     break;
                 }
             }
+
+            abstractStep.closeSync();
         }
         catch(Exception e){
             e.printStackTrace();

@@ -2,6 +2,7 @@ package org.freshworks.steps.box;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Optional;
 import org.freshworks.core.Annotations.FreshHierarchy;
 import org.freshworks.core.model.RequestResponse;
 import org.freshworks.steps.ParentStep;
@@ -17,28 +18,28 @@ public class User extends AbstractStep {
 
     ArrayList<String> listOfUsers = new ArrayList<>();
     String url = "https://api.box.com/2.0/users?usemarker=true&fields=login,created_at,role,status,space_amount,space_used,max_upload_size&limit=5&user_type=managed";
-    String token = "Bearer 1!ICgfok5JuBDMVNHG49w7E5epiHFB24oV3bv28r4Eh-j6eCGNTNMVJzSoG7mrWqLludgxPCQfOA3vNAFlot70j2j13mh3ANUGRFQN4K9V8E9nfZPQ2CzPaBMmf8d7VtNRWlFfSABLq2e5jweKJYB3UTSHWhtJ6RrFGpZMmdAwZZCKWwH_b61hAuNXetu2ZAdhQ55YGDq90PeSl3YJuID2MtCgAo2_JiCrXl5oPL_Yq4V1JWQ7gvub0ilTLtTLwqX1V6sN_muJ_lNUrN8g7Xjr9AsFfxpIJDds_1Exr4rqrQJ_F1c0J_qPR8jnC5mRt0DOiN-rwQ1FtJTiJABVWUZZ0_T318nNM6HgZmE5G4aSwTiwzr06skfUIeAuQdGs-yXsPicDf5uPIeJHjVVUfuGE2qGayiENtKroVRLrZf-UXP7_RYYeKZSPrS45kJEHSq3LbkRZcAfweu5jtv1VumhR4vXTUlI1aDOdAGwfcJ3zbBynR6xmWhs3DUKmqL6Vnccl-TeCdhDPEISg37A_1SLpZJ291p3DOxp7AMvSD-mIviFQvxb4xPKVcnspPBhQS_JlfZRobh12HjtSvCEutpc5fmUy_kG5QHCmP-kAxCHN6d9QughWQpn-reC4PPMlcPlqWf7ttsGuDcivWNNIBlXjzuZ4GF-hXvn-HaliEr5SP27KbKtgv3UxexIq-_C58_zW-TjUcICTQvp7hYtCOKKkxA..";
+    String token = "Bearer 1!ekqAD_7PqjFrSURe5Vea5s7l4_DFeJAe4s0m-MsbUnp9Oq0emYAINE9m09FK-qGRrw5QjhX_4-4GXGumjUZoghbDfcmoU8KXjTMoS6MKnCSi3pT4VVrTUIVEoWvQWLyCVABi8jywKlKlflMrpJxzN3thVM6Z4yjBh3XSW84EamaJqFORnMswOEQaJrC4i8NNWUv9dDm-A6Y6tFlwU5EjKJywS4eIWVopPiVxR-3-FdHBqzWepTcn_YO9SpYFJMIqv9-aEbH6fYmN9gLwPodiekO8zGDCdph-8dvkYMAv5VbSpO8la0Wk9uPA67o7aPQwHpcBif7YAYJuevkPynUuo7RsHnz9944dL5Q53jCNDkSimcd-ARp7eawsU3n8BWDPaZSS-YKmuZbbcHiMEToouk-Rnx0TKKZg_UEaNnXF7Hh4cZNgftOnkSteohffbbjAuaoOsH0g-flZQJMINdz17lLrjsQiGatf4UGXat5lTsMCg-s7DliCe0pMJRN0_mB8Yk3C5z8Q4UeultMcIY1ScSMu0bDwq11dz-mchBnk2rIs4BTgzd0V_B5hOV4IfTUTS_NS0AmWrAnVgyHXGxaxbaTVEksb8LuNK4bOl7U7LMznvFBYKK_HNpjIdha-C3Hs190kZpigu050tIJZlrfCZ9m0-Gx7ZY4paRt1aYfHI_5XvI3g4_FkxLzt9ilNka0gFPs3Ru341Fwthv4Ee9yEQA..";
 
     @Override
-    public RequestResponse setupSync() {
+    public Optional<RequestResponse> setupSync() {
         // Here make the call to authentication API and store the token in some where
-        return null;
+        return Optional.fromNullable(null);
     }
 
     @Override
-    public Boolean isSetupSyncComplete(RequestResponse currentRequest) {
-        return true;
+    public Optional<Boolean> isSetupSyncComplete(RequestResponse currentRequest) {
+        return Optional.fromNullable(true);
     }
 
     @Override
-    public RequestResponse startSync() {
+    public Optional<RequestResponse> startSync() {
 
         RequestResponse requestResponse = new RequestResponse();
         try{
             HttpRequest request = requestResponse.getRequest();
             request = HttpRequest.newBuilder(new URI(url)).GET().setHeader("Authorization",token).build();
             requestResponse.setRequest(request);
-            return requestResponse;
+            return Optional.fromNullable(requestResponse);
         }
         catch(Exception e){
             e.printStackTrace();
@@ -47,12 +48,12 @@ public class User extends AbstractStep {
     }
 
     @Override
-    public Boolean filter(RequestResponse currentRequest, JsonNode... parentJsonObject) {
-        return true;
+    public Optional<Boolean> filter(RequestResponse currentRequest, JsonNode... parentJsonObject) {
+        return Optional.fromNullable(true);
     }
 
     @Override
-    public RequestResponse getNextSyncRequest(RequestResponse requestResponse, JsonNode... parentJsonObject) {
+    public Optional<RequestResponse> getNextSyncRequest(RequestResponse requestResponse, JsonNode... parentJsonObject) {
         try{
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode node = objectMapper.readTree(requestResponse.getResponse().body());
@@ -60,22 +61,22 @@ public class User extends AbstractStep {
             url = url + "&" + "marker=" + marker.asText();
             HttpRequest request = HttpRequest.newBuilder(new URI(url)).GET().setHeader("Authorization",token).build();
             requestResponse.setRequest(request);
-            return requestResponse;
+            return Optional.fromNullable(requestResponse);
         }
         catch(Exception e){
             e.printStackTrace();
-            return null;
+            return Optional.fromNullable(null);
         }
     }
 
     @Override
-    public Boolean isSyncComplete(RequestResponse currentRequest, JsonNode... parentJsonObject) {
+    public Optional<Boolean> isSyncComplete(RequestResponse currentRequest, JsonNode... parentJsonObject) {
         try{
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode node = objectMapper.readTree(currentRequest.getResponse().body());
             JsonNode marker = node.get("next_marker");
             if(marker == null){
-                return true;
+                return Optional.fromNullable(true);
             }
 
         }
@@ -83,14 +84,14 @@ public class User extends AbstractStep {
             e.printStackTrace();
         }
 
-        return false;
+        return Optional.fromNullable(false);
     }
 
 
     @Override
-    public JsonNode parseSyncResponse(JsonNode jsonNode) {
+    public Optional<JsonNode> parseSyncResponse(JsonNode jsonNode) {
 
-        return jsonNode.get("entries");
+        return Optional.fromNullable(jsonNode.get("entries"));
     }
 
     @Override
