@@ -2,6 +2,7 @@ package org.freshworks.core.main;
 
 import com.google.common.collect.Multimap;
 import com.scalified.tree.TreeNode;
+import lombok.extern.slf4j.Slf4j;
 import org.freshworks.core.constants.Constants;
 import org.freshworks.core.env.Environment;
 import org.freshworks.core.scanners.ScanAssets;
@@ -15,10 +16,7 @@ import java.util.concurrent.Executors;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-/**
- * Hello world!
- *
- */
+@Slf4j
 public class Main
 {
     Multimap<String, String> serviceAssetTable;
@@ -27,6 +25,7 @@ public class Main
 
     public static void main( String[] args ) {
 
+        log.debug("setting up environment variables");
         Environment.setKeyValue(Constants.SYNC_STATUS_KEY, Constants.SYNC_STATUS.START);
 
         Environment.setKeyValue("transaction_id", "11223");

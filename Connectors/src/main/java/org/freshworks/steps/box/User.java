@@ -14,11 +14,11 @@ import java.util.ArrayList;
 
 // This is suppose to be the singleton objects
 @FreshHierarchy(parentClass = BaseStep.class)
-public class User implements StepInterface {
+public class User extends StepInterface {
 
     ArrayList<String> listOfUsers = new ArrayList<>();
     String url = "https://api.box.com/2.0/users?usemarker=true&fields=login,created_at,role,status,space_amount,space_used,max_upload_size&limit=5&user_type=managed";
-    String token = "Bearer 1!jvy5venA7ak9r2S_hAUlbEotRflIR4q_JjFw-bclrQnCS2_SOLT46aYfv3odSty3f7AVU2nl432C4P3MEegjrZ81qZ6L-wv-jLg1zs8GleaaZx8cCwsG6SUMGGeCQPAUl9Aa8XvjDzpayO4qfKV4xglUA5fPGRhJRF3p4Z5-j8Bpbuk_v75bQicMcB-fX6FVJfYmrPxPk7fKk1uWPqlgK74-iSxoJpb5l0Am1-vAT4slV-uIbG01_b_Ywlc9puI8wZ6elAtg5EKtpKp0YwCqe1G_MCnrqBrekBAESu9BnV2btXXnlsDxBxvf03_qYTGmPON-WsHFzdw_tA5LLARnSlFwinG1or2AkE5hHAdEeS9qjctqpS--OuZLW_CJhkCroXDdE4dH0Fq6pJGuDVn5Wy_uHT00L_nUrc2IuVtWystZZLFXdWKs_xYwaTnF7LmyYLw87xeYsF_gtTBN9CXofUJy3DDnORMplG53pfDBwVhDvSjoeX4nAeNCvsG2laJJBB0VhizgdAvpKVs6lqrpPs0KMzB7_4vJAnTjkdtgLqCK1FSNxKe4FGxxxev0ys0TZ8nWQjtVvoytsF8o8q7xXdOM3y1kq8bJw9tSwWfRy-GHi3A2fcEzKSs_3R0FZgB6fWFH6zSjgPgfr8jTbJlgo8Dayog1OrK2jotzHvscmjZ2d1bBEqP0Bh4u56Cycd8HxqPjKhxL0UPJADroa8Ul8w..";
+    String token = "Bearer 1!ICgfok5JuBDMVNHG49w7E5epiHFB24oV3bv28r4Eh-j6eCGNTNMVJzSoG7mrWqLludgxPCQfOA3vNAFlot70j2j13mh3ANUGRFQN4K9V8E9nfZPQ2CzPaBMmf8d7VtNRWlFfSABLq2e5jweKJYB3UTSHWhtJ6RrFGpZMmdAwZZCKWwH_b61hAuNXetu2ZAdhQ55YGDq90PeSl3YJuID2MtCgAo2_JiCrXl5oPL_Yq4V1JWQ7gvub0ilTLtTLwqX1V6sN_muJ_lNUrN8g7Xjr9AsFfxpIJDds_1Exr4rqrQJ_F1c0J_qPR8jnC5mRt0DOiN-rwQ1FtJTiJABVWUZZ0_T318nNM6HgZmE5G4aSwTiwzr06skfUIeAuQdGs-yXsPicDf5uPIeJHjVVUfuGE2qGayiENtKroVRLrZf-UXP7_RYYeKZSPrS45kJEHSq3LbkRZcAfweu5jtv1VumhR4vXTUlI1aDOdAGwfcJ3zbBynR6xmWhs3DUKmqL6Vnccl-TeCdhDPEISg37A_1SLpZJ291p3DOxp7AMvSD-mIviFQvxb4xPKVcnspPBhQS_JlfZRobh12HjtSvCEutpc5fmUy_kG5QHCmP-kAxCHN6d9QughWQpn-reC4PPMlcPlqWf7ttsGuDcivWNNIBlXjzuZ4GF-hXvn-HaliEr5SP27KbKtgv3UxexIq-_C58_zW-TjUcICTQvp7hYtCOKKkxA..";
 
     @Override
     public RequestResponse start() {
@@ -38,7 +38,7 @@ public class User implements StepInterface {
 
     @Override
     public Boolean filter(RequestResponse currentRequest, JsonNode... parentJsonObject) {
-        return null;
+        return true;
     }
 
     @Override
@@ -76,15 +76,6 @@ public class User implements StepInterface {
         return false;
     }
 
-    @Override
-    public void saveResult(String s) {
-        listOfUsers.add(s);
-    }
-
-    @Override
-    public ArrayList<String> getResult() {
-        return listOfUsers;
-    }
 
     @Override
     public JsonNode parseResponse(JsonNode jsonNode) {

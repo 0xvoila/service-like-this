@@ -3,9 +3,12 @@ package org.freshworks.steps;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.freshworks.core.model.RequestResponse;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public interface StepInterface {
+public abstract class StepInterface {
+
+    ArrayList<String> list = new ArrayList<>();
 
     public abstract RequestResponse start();
 
@@ -15,9 +18,13 @@ public interface StepInterface {
 
     public abstract Boolean isComplete(RequestResponse currentRequest, JsonNode... parentJsonObject);
 
-    public abstract void saveResult(String s);
+    public void saveResult(String s){
+        list.add(s);
+    }
 
-    public abstract List<String> getResult();
+    public List<String> getResult(){
+        return list;
+    }
 
     public abstract JsonNode parseResponse(JsonNode jsonNode);
 

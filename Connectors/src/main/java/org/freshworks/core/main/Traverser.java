@@ -51,9 +51,7 @@ public class Traverser {
             while (it.hasNext()){
                 process(node, objectMapper.readTree(it.next()));
             }
-
         }
-
     }
 
     public static RequestResponse getObject(RequestResponse requestResponse) {

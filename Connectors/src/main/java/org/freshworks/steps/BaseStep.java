@@ -1,12 +1,14 @@
 package org.freshworks.steps;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.freshworks.core.infra.Infra;
 import org.freshworks.core.model.RequestResponse;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class BaseStep implements StepInterface{
+public class BaseStep extends StepInterface{
 
     @Override
     public RequestResponse start() {
@@ -28,10 +30,6 @@ public class BaseStep implements StepInterface{
         return null;
     }
 
-    @Override
-    public void saveResult(String s) {
-
-    }
 
     @Override
     public List<String> getResult() {
@@ -43,5 +41,17 @@ public class BaseStep implements StepInterface{
     @Override
     public JsonNode parseResponse(JsonNode jsonNode) {
         return null;
+    }
+
+    public void save(String key, Object value){
+
+        Infra.redis.put(key, value);
+
+    }
+
+    public Object get(String key){
+
+        return Infra.redis.get(key);
+
     }
 }

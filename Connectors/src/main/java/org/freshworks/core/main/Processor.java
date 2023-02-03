@@ -20,8 +20,6 @@ import static org.freshworks.core.constants.Constants.GETTER_METHOD_PREFIX;
 import static org.freshworks.core.constants.Constants.JsonTypeInfo_As_PROPERTY;
 
 public class Processor {
-
-    HashMap<String, String> redis = new HashMap<>();
     Multimap<String, String> serviceAssetTable;
 
     public Processor(Multimap<String, String> serviceAssetTable){
@@ -88,7 +86,7 @@ public class Processor {
                             fieldValue = getterMethod.invoke(nestedClassObject);
                             checkNotNull(fieldValue, "lookup field value can not be null");
 
-                            redis.put(mainStepPathAsString + "_" + fieldValue,mainStepObjectAsString);
+                            Infra.redis.put(mainStepPathAsString + "_" + fieldValue,mainStepObjectAsString);
                         }
                         else{
                             Method getterMethod = lookupStepClass.getDeclaredMethod(GETTER_METHOD_PREFIX + getLookupField(lookupStepClass, freshLookup).substring(0, 1).toUpperCase()
@@ -96,20 +94,20 @@ public class Processor {
                             fieldValue = getterMethod.invoke(mainStepClassObject);
                             checkNotNull(fieldValue, "lookup field value can not be null");
 
-                            redis.put(mainStepPathAsString + "_" + fieldValue,mainStepObjectAsString);
+                            Infra.redis.put(mainStepPathAsString + "_" + fieldValue,mainStepObjectAsString);
                         }
 
 //                  Now check if it exists in
                         Boolean found = false;
                         ArrayList<String> assetStepDependencyObjectListAsString = new ArrayList<>();
                         for(String f : assetStepDependencyList){
-                            if(redis.get(f + "_" + fieldValue) == null){
+                            if(Infra.redis.get(f + "_" + fieldValue) == null){
                                 found = false;
                                 break;
                             }
                             else{
                                 found = true;
-                                assetStepDependencyObjectListAsString.add(redis.get(f + "_" + fieldValue));
+                                assetStepDependencyObjectListAsString.add((String)Infra.redis.get(f + "_" + fieldValue));
                             }
                         }
 
