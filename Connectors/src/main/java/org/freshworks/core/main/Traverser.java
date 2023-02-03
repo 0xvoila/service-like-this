@@ -11,8 +11,8 @@ import org.freshworks.beans.BaseBean;
 import org.freshworks.core.model.DiscoveryObject;
 import org.freshworks.core.model.RequestResponse;
 import org.freshworks.core.utils.Utility;
-import org.freshworks.steps.BaseStep;
-import org.freshworks.steps.StepInterface;
+import org.freshworks.steps.ParentStep;
+import org.freshworks.steps.AbstractStep;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -27,27 +27,27 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 public class Traverser {
 
-    static HashMap<String, StepInterface> singletonObjects = new HashMap<>();
+    static HashMap<String, AbstractStep> singletonObjects = new HashMap<>();
 
     public static void traverse(TreeNode<String> node) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException, URISyntaxException, IOException, InstantiationException {
 
         ObjectMapper objectMapper = new ObjectMapper();
 
-        if(node.parent() == null && node.data().equals(BaseStep.class.getName())) {
+        if(node.parent() == null && node.data().equals(ParentStep.class.getName())) {
         }
         else{
-            StepInterface parentTraverseObject = null;
+            AbstractStep parentTraverseObject = null;
 
             if(singletonObjects.get(node.parent().data()) != null){
                 parentTraverseObject = singletonObjects.get(node.parent().data());
             }
             else{
                 Class<?> parentCl = Class.forName(node.parent().data());
-                parentTraverseObject = (StepInterface) parentCl.getConstructor().newInstance();
+                parentTraverseObject = (AbstractStep) parentCl.getConstructor().newInstance();
                 singletonObjects.put(node.parent().data(), parentTraverseObject);
             }
 
-            Iterator<String> it = parentTraverseObject.getResult().iterator();
+            Iterator<String> it = parentTraverseObject.getSyncResult().iterator();
             while (it.hasNext()){
                 process(node, objectMapper.readTree(it.next()));
             }
@@ -74,22 +74,22 @@ public class Traverser {
             Class<?> cl = Class.forName(node.data());
             ObjectMapper objectMapper = new ObjectMapper();
 
-            StepInterface stepInterface = null;
+            AbstractStep abstractStep = null;
             if(singletonObjects.get(node.data()) != null){
-                stepInterface = singletonObjects.get(node.data());
+                abstractStep = singletonObjects.get(node.data());
             }
             else{
-                stepInterface = (StepInterface) cl.getConstructor().newInstance();
-                singletonObjects.put(node.data(), stepInterface);
+                abstractStep = (AbstractStep) cl.getConstructor().newInstance();
+                singletonObjects.put(node.data(), abstractStep);
             }
 
             while (true) {
-                RequestResponse requestResponse = stepInterface.start();
+                RequestResponse requestResponse = abstractStep.startSync();
                 getObject(requestResponse);
                 checkArgument(!requestResponse.getResponse().body().equals(""), "Requested response is empty from third party");
 
                 JsonNode jNodeList = objectMapper.readTree(requestResponse.getResponse().body());
-                jNodeList = stepInterface.parseResponse(jNodeList);
+                jNodeList = abstractStep.parseSyncResponse(jNodeList);
                 Iterator<JsonNode> iterator = jNodeList.iterator();
                 while (iterator.hasNext()) {
 
@@ -109,12 +109,12 @@ public class Traverser {
 
                         // Here save this as well so that it can be used to process its child
                         String s = objectMapper.writeValueAsString(baseBean);
-                        stepInterface.saveResult(s);
+                        abstractStep.saveSyncResult(s);
                     }
                 }
 
-                if(Boolean.FALSE.equals(stepInterface.isComplete(requestResponse))){
-                    requestResponse = stepInterface.getNextRequest(requestResponse, parentNodeData);
+                if(Boolean.FALSE.equals(abstractStep.isSyncComplete(requestResponse))){
+                    requestResponse = abstractStep.getNextSyncRequest(requestResponse, parentNodeData);
                 }
                 else{
                     break;

@@ -1,17 +1,16 @@
 package org.freshworks.steps;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.freshworks.core.infra.Infra;
 import org.freshworks.core.model.RequestResponse;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class BaseStep extends StepInterface{
+public class ParentStep extends AbstractStep {
 
     @Override
-    public RequestResponse start() {
+    public RequestResponse startSync() {
         return null;
     }
 
@@ -21,25 +20,25 @@ public class BaseStep extends StepInterface{
     }
 
     @Override
-    public RequestResponse getNextRequest(RequestResponse currentRequest, JsonNode... parentJsonObject) {
+    public RequestResponse getNextSyncRequest(RequestResponse currentRequest, JsonNode... parentJsonObject) {
         return null;
     }
 
     @Override
-    public Boolean isComplete(RequestResponse currentRequest, JsonNode... parentJsonObject) {
+    public Boolean isSyncComplete(RequestResponse currentRequest, JsonNode... parentJsonObject) {
         return null;
     }
 
 
     @Override
-    public List<String> getResult() {
+    public List<String> getSyncResult() {
         ArrayList<String> x = new ArrayList<String>();
         x.add("");
         return x;
     }
 
     @Override
-    public JsonNode parseResponse(JsonNode jsonNode) {
+    public JsonNode parseSyncResponse(JsonNode jsonNode) {
         return null;
     }
 
