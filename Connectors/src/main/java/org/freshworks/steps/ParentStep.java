@@ -11,13 +11,8 @@ import java.util.List;
 public class ParentStep extends AbstractStep {
 
     @Override
-    public Optional<RequestResponse> setupSync() {
-        return Optional.fromNullable(null);
-    }
+    public void setup() {
 
-    @Override
-    public Optional<Boolean> isSetupSyncComplete(RequestResponse currentRequest) {
-        return Optional.fromNullable(null);
     }
 
     @Override

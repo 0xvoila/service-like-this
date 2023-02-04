@@ -10,6 +10,7 @@ import java.security.PrivateKey;
 import java.security.Security;
 import java.util.HashMap;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -27,7 +28,7 @@ import org.jose4j.jwt.JwtClaims;
 
 public class Authentication {
 
-    public static void main(String[] args) {
+    public static String getAccessToken() {
         try {
             // Create a file reader
             FileReader reader = new FileReader("/Users/aaggarwal/Documents/config.json");
@@ -94,6 +95,7 @@ public class Authentication {
             // to authenticate
             params.put("grant_type", "urn:ietf:params:oauth:grant-type:jwt-bearer");
             // Our JWT assertion
+
             params.put("assertion", assertion);
             // The OAuth 2 client ID and secret
             params.put("client_id", config.boxAppSettings.clientID);
@@ -104,16 +106,19 @@ public class Authentication {
 //            CloseableHttpClient httpClient = HttpClientBuilder.create().disableCookieManagement().build();
             HttpClient httpClient = HttpClient.newHttpClient();
 
-            HttpRequest request = HttpRequest.newBuilder().uri(new URI(authenticationUrl)).POST(HttpRequest.BodyPublishers.ofString(paramString)).build();
+            HttpRequest request = HttpRequest.newBuilder().uri(new URI(authenticationUrl)).setHeader("Content-type", "application/json").POST(HttpRequest.BodyPublishers.ofString(paramString)).build();
+
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
             Token token = objectMapper.readValue(response.body(), Token.class);
             String accessToken = token.access_token;
-            System.out.println(accessToken);
+            return accessToken;
 
         } catch (Exception e) {
             System.err.println(e.getMessage());
         }
+
+        return null;
     }
 }
 
@@ -145,6 +150,10 @@ class Config {
 }
 
 // Parse the JSON using Gson to a Token object
+@Getter @Setter
+@NoArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 class Token {
     String access_token;
+    long expires_in;
 }

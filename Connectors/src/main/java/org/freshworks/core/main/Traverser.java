@@ -47,9 +47,6 @@ public class Traverser {
                 singletonObjects.put(node.parent().data(), parentTraverseObject);
             }
 
-//          In this method, we process the first time methods of the traverse like sync set up
-            setupSync(node);
-
             Iterator<String> it = parentTraverseObject.getSyncResult().iterator();
             while (it.hasNext()){
                 process(node, objectMapper.readTree(it.next()));
@@ -67,41 +64,6 @@ public class Traverser {
         catch (Exception e){
             e.printStackTrace();
             return requestResponse;
-        }
-    }
-
-    private static void setupSync(TreeNode<String> node){
-
-        try{
-            Class<?> cl = Class.forName(node.data());
-            ObjectMapper objectMapper = new ObjectMapper();
-
-            AbstractStep abstractStep = null;
-            if(singletonObjects.get(node.data()) != null){
-                abstractStep = singletonObjects.get(node.data());
-            }
-            else{
-                abstractStep = (AbstractStep) cl.getConstructor().newInstance();
-                singletonObjects.put(node.data(), abstractStep);
-            }
-
-            while(true){
-                Optional<RequestResponse> requestResponseOptional =  abstractStep.setupSync();
-                if(requestResponseOptional.isPresent()){
-                    getObject(requestResponseOptional.get());
-                    Optional<Boolean> opt = abstractStep.isSetupSyncComplete(requestResponseOptional.get());
-                    checkArgument(opt.isPresent(), "isSetupSyncComplete should return boolean. It returns null");
-                    if(Boolean.TRUE.equals(opt.get())){
-                        break;
-                    }
-                }
-                else{
-                    break;
-                }
-            }
-        }
-        catch(Exception e){
-            e.printStackTrace();
         }
     }
 
@@ -125,6 +87,7 @@ public class Traverser {
             Optional<RequestResponse> requestResponseOptional;
             while (true) {
                 if (i == 0){
+                    abstractStep.setup();
                     requestResponseOptional = abstractStep.startSync();
                     checkArgument(requestResponseOptional.isPresent(), "start sync request can not be null");
                     requestResponse = requestResponseOptional.get();

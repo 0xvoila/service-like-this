@@ -19,16 +19,18 @@ public class Usage extends AbstractStep {
     ArrayList<String> listOfUsage = new ArrayList<>();
 
     String url = "https://api.box.com/2.0/events/?stream_type=admin_logs&event_type=ADD_LOGIN_ACTIVITY_DEVICE,ADMIN_LOGIN,CONTENT_ACCESS,COPY,DELETE,DOWNLOAD,ITEM_OPEN,LOGIN";
-    String token = "Bearer 1!ekqAD_7PqjFrSURe5Vea5s7l4_DFeJAe4s0m-MsbUnp9Oq0emYAINE9m09FK-qGRrw5QjhX_4-4GXGumjUZoghbDfcmoU8KXjTMoS6MKnCSi3pT4VVrTUIVEoWvQWLyCVABi8jywKlKlflMrpJxzN3thVM6Z4yjBh3XSW84EamaJqFORnMswOEQaJrC4i8NNWUv9dDm-A6Y6tFlwU5EjKJywS4eIWVopPiVxR-3-FdHBqzWepTcn_YO9SpYFJMIqv9-aEbH6fYmN9gLwPodiekO8zGDCdph-8dvkYMAv5VbSpO8la0Wk9uPA67o7aPQwHpcBif7YAYJuevkPynUuo7RsHnz9944dL5Q53jCNDkSimcd-ARp7eawsU3n8BWDPaZSS-YKmuZbbcHiMEToouk-Rnx0TKKZg_UEaNnXF7Hh4cZNgftOnkSteohffbbjAuaoOsH0g-flZQJMINdz17lLrjsQiGatf4UGXat5lTsMCg-s7DliCe0pMJRN0_mB8Yk3C5z8Q4UeultMcIY1ScSMu0bDwq11dz-mchBnk2rIs4BTgzd0V_B5hOV4IfTUTS_NS0AmWrAnVgyHXGxaxbaTVEksb8LuNK4bOl7U7LMznvFBYKK_HNpjIdha-C3Hs190kZpigu050tIJZlrfCZ9m0-Gx7ZY4paRt1aYfHI_5XvI3g4_FkxLzt9ilNka0gFPs3Ru341Fwthv4Ee9yEQA..";
+    String token ;
 
     @Override
-    public Optional<RequestResponse> setupSync() {
-        return Optional.fromNullable(null);
-    }
+    public void setup() {
 
-    @Override
-    public Optional<Boolean> isSetupSyncComplete(RequestResponse currentRequest) {
-        return Optional.fromNullable(true);
+        if(getData("auth_token") == null){
+            this.token = "Bearer " + Authentication.getAccessToken();
+            saveData("auth_token",this.token);
+        }
+        else{
+            this.token = (String)getData("auth_token");
+        }
     }
 
     @Override

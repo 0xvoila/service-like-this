@@ -2,6 +2,7 @@ package org.freshworks.steps;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Optional;
+import org.freshworks.core.infra.Infra;
 import org.freshworks.core.model.RequestResponse;
 
 import java.util.ArrayList;
@@ -12,9 +13,8 @@ public abstract class AbstractStep {
 
     ArrayList<String> list = new ArrayList<>();
 
-    public abstract Optional<RequestResponse> setupSync();
+    public abstract void setup();
 
-    public abstract  Optional<Boolean> isSetupSyncComplete(RequestResponse currentRequest);
 
     public abstract Optional<RequestResponse> startSync();
 
@@ -35,4 +35,12 @@ public abstract class AbstractStep {
     public abstract Optional<JsonNode> parseSyncResponse(JsonNode jsonNode);
 
     public abstract void closeSync();
+
+    public void saveData(String key, Object value){
+        Infra.redis.put(key, value);
+    }
+
+    public Object getData(String key){
+        return Infra.redis.get(key);
+    }
 }
